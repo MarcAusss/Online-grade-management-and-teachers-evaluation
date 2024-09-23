@@ -113,6 +113,12 @@ if($action == 'save_criteria_order'){
 		echo $save;
 }
 
+if($action == 'fetch_questions'){
+    $questions = $crud->fetch_questions();
+    if($questions)
+        echo $questions;
+}
+
 if($action == 'save_question_order'){
 	$save = $crud->save_question_order();
 	if($save)

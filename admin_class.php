@@ -15,30 +15,30 @@ Class Action {
 	    ob_end_flush();
 	}
 
-	function login(){
-		extract($_POST);
-		$type = array("","users","faculty_list","student_list");
-		$type2 = array("","admin","faculty","student");
-			$qry = $this->db->query("SELECT *,concat(firstname,' ',lastname) as name FROM {$type[$login]} where email = '".$email."' and password = '".md5($password)."'  ");
-		if($qry->num_rows > 0){
-			foreach ($qry->fetch_array() as $key => $value) {
-				if($key != 'password' && !is_numeric($key))
-					$_SESSION['login_'.$key] = $value;
+		function login(){
+			extract($_POST);
+			$type = array("","users","faculty_list","student_list");
+			$type2 = array("","admin","faculty","student");
+				$qry = $this->db->query("SELECT *,concat(firstname,' ',lastname) as name FROM {$type[$login]} where email = '".$email."' and password = '".md5($password)."'  ");
+			if($qry->num_rows > 0){
+				foreach ($qry->fetch_array() as $key => $value) {
+					if($key != 'password' && !is_numeric($key))
+						$_SESSION['login_'.$key] = $value;
+				}
+						$_SESSION['login_type'] = $login;
+						$_SESSION['login_view_folder'] = $type2[$login].'/';
+			$academic = $this->db->query("SELECT * FROM academic_list where is_default = 1 ");
+			if($academic->num_rows > 0){
+				foreach($academic->fetch_array() as $k => $v){
+					if(!is_numeric($k))
+						$_SESSION['academic'][$k] = $v;
+				}
 			}
-					$_SESSION['login_type'] = $login;
-					$_SESSION['login_view_folder'] = $type2[$login].'/';
-		$academic = $this->db->query("SELECT * FROM academic_list where is_default = 1 ");
-		if($academic->num_rows > 0){
-			foreach($academic->fetch_array() as $k => $v){
-				if(!is_numeric($k))
-					$_SESSION['academic'][$k] = $v;
+					return 1;
+			}else{
+				return 2;
 			}
 		}
-				return 1;
-		}else{
-			return 2;
-		}
-	}
 	function logout(){
 		session_destroy();
 		foreach ($_SESSION as $key => $value) {
@@ -630,27 +630,35 @@ Class Action {
 		}
 			return 1;
 	}
-	function save_evaluation(){
-		extract($_POST);
-		$data = " student_id = {$_SESSION['login_id']} ";
-		$data .= ", academic_id = $academic_id ";
-		$data .= ", subject_id = $subject_id ";
-		$data .= ", class_id = $class_id ";
-		$data .= ", restriction_id = $restriction_id ";
-		$data .= ", faculty_id = $faculty_id ";
-		$save = $this->db->query("INSERT INTO evaluation_list set $data");
-		if($save){
-			$eid = $this->db->insert_id;
-			foreach($qid as $k => $v){
-				$data = " evaluation_id = $eid ";
-				$data .= ", question_id = $v ";
-				$data .= ", rate = {$rate[$v]} ";
-				$ins[] = $this->db->query("INSERT INTO evaluation_answers set $data ");
-			}
-			if(isset($ins))
-				return 1;
-		}
-	}
+	public function save_evaluation() {
+        include 'db_connect.php'; // Adjust this to your database connection file
+        
+        $academic_id = $_POST['academic_id'];
+        $faculty_id = $_POST['faculty_id'];
+        $class_id = $_POST['class_id'];
+        $subject_id = $_POST['subject_id'];
+        $student_id = $_POST['student_id']; // Assuming the student ID is stored in session
+        $date_taken = date('Y-m-d H:i:s');
+        
+        // Insert into evaluation_list
+        $insert_query = "
+            INSERT INTO evaluation_list (academic_id, class_id, student_id, subject_id, faculty_id, date_taken) 
+            VALUES ('$academic_id', '$class_id', '$student_id', '$subject_id', '$faculty_id', '$date_taken')
+        ";
+        $conn->query($insert_query);
+        $evaluation_id = $conn->insert_id;
+
+        // Insert answers into evaluation_answers
+        foreach ($_POST['rate'] as $question_id => $rate) {
+            $insert_answer = "
+                INSERT INTO evaluation_answers (evaluation_id, question_id, rate) 
+                VALUES ('$evaluation_id', '$question_id', '$rate')
+            ";
+            $conn->query($insert_answer);
+        }
+        
+        return 1; // Success
+    }
 	function get_class(){
 		extract($_POST);
 		$data = array();
@@ -687,4 +695,53 @@ Class Action {
 		return json_encode($data);
 
 	}
+
+	public function fetch_questions() {
+        include 'db_connect.php'; // Adjust this to your database connection file
+        
+        $academic_id = $_SESSION['academic']['id'];
+        $faculty_id = $_POST['faculty_id'];
+        $class_id = $_POST['class_id'];
+        $subject_id = $_POST['subject_id'];
+
+        $query = "
+            SELECT q.*, c.criteria 
+            FROM question_list q 
+            INNER JOIN criteria_list c ON c.id = q.criteria_id 
+            WHERE q.academic_id = '$academic_id'
+            ORDER BY ABS(q.order_by) ASC
+        ";
+        $questions = $conn->query($query);
+
+        $response = '';
+        while ($row = $questions->fetch_assoc()) {
+            $response .= "
+                <table class='table table-condensed'>
+                    <thead>
+                        <tr class='bg-gradient-secondary'>
+                            <th>{$row['criteria']}</th>
+                            <th class='text-center'>1</th>
+                            <th class='text-center'>2</th>
+                            <th class='text-center'>3</th>
+                            <th class='text-center'>4</th>
+                            <th class='text-center'>5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class='bg-white'>
+                            <td>{$row['question']}</td>
+                            <td><input type='radio' name='rate[{$row['id']}]' value='1' required></td>
+                            <td><input type='radio' name='rate[{$row['id']}]' value='2'></td>
+                            <td><input type='radio' name='rate[{$row['id']}]' value='3'></td>
+                            <td><input type='radio' name='rate[{$row['id']}]' value='4'></td>
+                            <td><input type='radio' name='rate[{$row['id']}]' value='5'></td>
+                        </tr>
+                    </tbody>
+                </table>
+            ";
+        }
+        return $response;
+    }
+
+  
 }
