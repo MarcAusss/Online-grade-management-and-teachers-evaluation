@@ -152,7 +152,7 @@ $restriction = $conn->query($restriction_query);
         }
         if(<?php echo empty($rid) ? 1 : 0 ?> == 1)
             uni_modal("Information","<?php echo $_SESSION['login_view_folder'] ?>done.php")
-    });
+    }); 
 
     $('#manage-evaluation').submit(function(e){
         e.preventDefault();
