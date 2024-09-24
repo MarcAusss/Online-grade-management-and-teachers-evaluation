@@ -111,6 +111,13 @@
               </p>
             </a>
           </li>
+          <li class="nav-item dropdown">
+            <a href="./index.php?page=grade" class="nav-link nav-grade">
+              <i class="nav-icon fas fa-list-alt"></i>
+              <p>
+               Grades Report
+              </p>
+            </a>
           <li class="nav-item">
             <a href="#" class="nav-link nav-edit_user">
               <i class="nav-icon fas fa-users"></i>

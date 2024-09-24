@@ -749,7 +749,7 @@ Class Action {
 			$student_id = $_POST['student_id'];
 			$subject_id = $_POST['subject_id'];
 			$grade = $_POST['grade'];
-			$faculty_id = $_SESSION['faculty_id']; // Assuming this is set
+			$faculty_id = $_SESSION['login_id']; // Assuming this is set
 	
 			// Prepare the query
 			$query = "INSERT INTO grades (student_id, subject_id, faculty_id, grade) VALUES (?, ?, ?, ?)";
