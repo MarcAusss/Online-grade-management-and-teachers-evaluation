@@ -743,5 +743,58 @@ Class Action {
         return $response;
     }
 
-  
+	function submit_grade() {
+		// Ensure POST data is available
+		if (isset($_POST['student_id'], $_POST['subject_id'], $_POST['grade'])) {
+			$student_id = $_POST['student_id'];
+			$subject_id = $_POST['subject_id'];
+			$grade = $_POST['grade'];
+			$faculty_id = $_SESSION['faculty_id']; // Assuming this is set
+	
+			// Prepare the query
+			$query = "INSERT INTO grades (student_id, subject_id, faculty_id, grade) VALUES (?, ?, ?, ?)";
+			$stmt = $this->db->prepare($query);
+	
+			// Bind parameters
+			$stmt->bind_param("iiid", $student_id, $subject_id, $faculty_id, $grade);
+	
+			// Execute the query
+			if ($stmt->execute()) {
+				echo "Grade submitted successfully.";
+			} else {
+				echo "Error submitting grade: " . $stmt->error;
+			}
+	
+			// Close the statement
+			$stmt->close();
+		} else {
+			echo "Invalid input.";
+		}
+	}
+	public function edit_grade() {
+        $grade_id = $_POST['grade_id'];
+        $grade = $_POST['grade'];
+
+        $query = "UPDATE grades SET grade='$grade' WHERE id='$grade_id'";
+        $result = $this->db->query($query);
+
+        if ($result) {
+            return "Grade updated successfully.";
+        } else {
+            return "Error Updating Grade: " . $this->db->error;
+        }
+    }
+
+    public function delete_grade() {
+        $grade_id = $_POST['grade_id'];
+
+        $query = "DELETE FROM grades WHERE id='$grade_id'";
+        $result = $this->db->query($query);
+
+        if ($result) {
+            return "Grade deleted successfully.";
+        } else {
+            return "Error Deleting Grade: " . $this->db->error;
+        }
+    }
 }
