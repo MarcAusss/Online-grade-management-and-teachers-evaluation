@@ -165,5 +165,22 @@ if($action == 'get_report'){
 	if($get)
 		echo $get;
 }
+
+if ($action == 'submit_grade') {
+	$get = $crud->submit_grade();
+	if($save)
+		echo $save;
+}
+if ($action == 'edit_grade') {
+    $save = $crud->edit_grade();
+    if($save)
+        echo $save;
+}
+
+if ($action == 'delete_grade') {
+    $save = $crud->delete_grade();
+    if($save)
+        echo $save;
+}
 ob_end_flush();
 ?>
