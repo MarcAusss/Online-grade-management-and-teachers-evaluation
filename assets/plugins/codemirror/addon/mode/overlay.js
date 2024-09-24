@@ -1,5 +1,4 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
+
 
 // Utility function that allows modes to be combined. The mode given
 // as the base argument takes care of most of the normal mode

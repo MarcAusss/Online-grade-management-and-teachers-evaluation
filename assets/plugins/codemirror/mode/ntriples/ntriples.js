@@ -1,5 +1,4 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
+
 
 /**********************************************************
 * This script provides syntax highlighting support for

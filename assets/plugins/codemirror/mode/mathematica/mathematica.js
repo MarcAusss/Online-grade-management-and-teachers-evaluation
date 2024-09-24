@@ -1,5 +1,4 @@
-// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
+
 
 // Mathematica mode copyright (c) 2015 by Calin Barbat
 // Based on code by Patrick Scheibe (halirutan)
