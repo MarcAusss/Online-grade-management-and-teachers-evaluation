@@ -1,8 +1,4 @@
-/*!
- * bsStepper v1.7.0 (https://github.com/Johann-S/bs-stepper)
- * Copyright 2018 - 2019 Johann-S <johann.servoire@gmail.com>
- * Licensed under MIT (https://github.com/Johann-S/bs-stepper/blob/master/LICENSE)
- */
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
