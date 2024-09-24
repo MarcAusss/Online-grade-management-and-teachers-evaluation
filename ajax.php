@@ -167,7 +167,7 @@ if($action == 'get_report'){
 }
 
 if ($action == 'submit_grade') {
-	$get = $crud->submit_grade();
+	$save = $crud->submit_grade();
 	if($save)
 		echo $save;
 }
