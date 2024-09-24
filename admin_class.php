@@ -715,7 +715,7 @@ Class Action {
 		return json_encode($data);
 
 	}
-
+	
 	public function fetch_questions() {
         include 'db_connect.php'; // Adjust this to your database connection file
         
