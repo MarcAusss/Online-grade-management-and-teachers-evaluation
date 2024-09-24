@@ -1,3 +1,4 @@
+<?php $student_id = $_SESSION['login_id'] ?>
 <?php
 // Helper function for ordinal suffixes
 function ordinal_suffix($num){
@@ -151,19 +152,28 @@ $('#manage-evaluation').submit(function(e) {
         url: 'ajax.php?action=save_evaluation',
         method: 'POST',
         data: $(this).serialize(),
-  success: function(resp) {
-    console.log(resp);  // Log the response for debugging
-    if (resp == "1" || resp == 1) {  // Handle both numeric and string "1"
-        alert_toast("Data successfully saved.", "success");
-        setTimeout(function() {
-            location.reload();
-        }, 1750);
-    } else {
-        alert_toast("An error occurred while saving the data.", "error");
-    }
-}
+        success: function(resp) {
+            try {
+                var response = JSON.parse(resp); // Attempt to parse the response as JSON
+
+                if (response.status === 'success') {
+                    alert_toast(response.message, "success");
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1750);
+                } else {
+                    alert_toast(response.message, "error");
+                }
+            } catch (error) {
+                alert_toast("An unexpected error occurred.", "error");
+            }
+        },
+        error: function() {
+            alert_toast("Error submitting evaluation.");
+        }
     });
 });
+
 
 $('#submit-evaluation').click(function() {
     $('#manage-evaluation').submit();

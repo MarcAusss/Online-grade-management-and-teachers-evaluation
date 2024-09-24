@@ -631,34 +631,54 @@ Class Action {
 			return 1;
 	}
 	public function save_evaluation() {
-        include 'db_connect.php'; // Adjust this to your database connection file
-        
-        $academic_id = $_POST['academic_id'];
-        $faculty_id = $_POST['faculty_id'];
-        $class_id = $_POST['class_id'];
-        $subject_id = $_POST['subject_id'];
-        $student_id = $_POST['student_id']; // Assuming the student ID is stored in session
-        $date_taken = date('Y-m-d H:i:s');
-        
-        // Insert into evaluation_list
-        $insert_query = "
-            INSERT INTO evaluation_list (academic_id, class_id, student_id, subject_id, faculty_id, date_taken) 
-            VALUES ('$academic_id', '$class_id', '$student_id', '$subject_id', '$faculty_id', '$date_taken')
-        ";
-        $conn->query($insert_query);
-        $evaluation_id = $conn->insert_id;
-
-        // Insert answers into evaluation_answers
-        foreach ($_POST['rate'] as $question_id => $rate) {
-            $insert_answer = "
-                INSERT INTO evaluation_answers (evaluation_id, question_id, rate) 
-                VALUES ('$evaluation_id', '$question_id', '$rate')
-            ";
-            $conn->query($insert_answer);
-        }
-        
-        return 1; // Success
-    }
+		include 'db_connect.php'; // Adjust this to your database connection file
+	
+		$academic_id = $_POST['academic_id'];
+		$faculty_id = $_POST['faculty_id'];
+		$class_id = $_POST['class_id'];
+		$subject_id = $_POST['subject_id'];
+		$student_id = $_SESSION['login_id']; // Assuming the student ID is stored in session
+		$date_taken = date('Y-m-d H:i:s');
+	
+		// Check if there is a restriction that allows this evaluation
+		$restriction_check_query = "
+			SELECT * FROM restriction_list 
+			WHERE academic_id = ? AND faculty_id = ? AND class_id = ? AND subject_id = ?
+		";
+		$stmt = $conn->prepare($restriction_check_query);
+		$stmt->bind_param("iiii", $academic_id, $faculty_id, $class_id, $subject_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+	
+		if ($result->num_rows === 0) {
+			// No restriction found, return an error
+			return json_encode(array('status' => 'error', 'message' => 'You are not allowed to evaluate this combination.'));
+		}
+	
+		// Insert into evaluation_list
+		$insert_query = "
+			INSERT INTO evaluation_list (academic_id, class_id, student_id, subject_id, faculty_id, date_taken) 
+			VALUES (?, ?, ?, ?, ?, ?)
+		";
+		$stmt = $conn->prepare($insert_query);
+		$stmt->bind_param("iiisss", $academic_id, $class_id, $student_id, $subject_id, $faculty_id, $date_taken);
+		$stmt->execute();
+		$evaluation_id = $conn->insert_id;
+	
+		// Insert answers into evaluation_answers
+		foreach ($_POST['rate'] as $question_id => $rate) {
+			$insert_answer = "
+				INSERT INTO evaluation_answers (evaluation_id, question_id, rate) 
+				VALUES (?, ?, ?)
+			";
+			$stmt = $conn->prepare($insert_answer);
+			$stmt->bind_param("iid", $evaluation_id, $question_id, $rate);
+			$stmt->execute();
+		}
+	
+		return json_encode(array('status' => 'success', 'message' => 'Evaluation successfully saved.')); // Success
+	}
+	
 	function get_class(){
 		extract($_POST);
 		$data = array();
