@@ -38,7 +38,7 @@
           </div><!-- /.col -->
 
         </div><!-- /.row -->
-            <hr class="border-primary">
+            <hr style="border-color: #551C2D;">
       </div><!-- /.container-fluid -->
     </div>
     <!-- /.content-header -->
@@ -130,5 +130,13 @@
 <!-- jQuery -->
 <!-- Bootstrap -->
 <?php include 'footer.php' ?>
+
+
+<style>
+  .card-primary.card-outline{
+    border-top-color: #551C2D !important;
+  }
+</style>
+
 </body>
 </html>

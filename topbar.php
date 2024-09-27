@@ -5,9 +5,16 @@
         width: 25px;
         object-fit: cover;
     }
+    .main-header .nav-link{
+      color: white !important
+    }
+    .main-header .nav-link:hover{
+      color: #ccc !important;
+
+    }
   </style>
 <!-- Navbar -->
-  <nav class="main-header navbar navbar-expand navbar-primary navbar-dark ">
+  <nav class="main-header navbar navbar-expand" style="background-color: #5E1F32;">
     <!-- Left navbar links -->
     <ul class="navbar-nav">
       <?php if(isset($_SESSION['login_id'])): ?>
@@ -16,7 +23,7 @@
       </li>
     <?php endif; ?>
       <li>
-        <a class="nav-link text-white"  href="./" role="button"> <large><b><?php echo $_SESSION['system']['name'] ?></b></large></a>
+        <a class="nav-link text-white"  href="./" role="button"> <large><b>Online Grade Management and Teachers Evaluation</b></large></a>
       </li>
     </ul>
 
