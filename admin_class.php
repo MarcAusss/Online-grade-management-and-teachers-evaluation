@@ -453,48 +453,50 @@ Class Action {
 			return 1;
 		}
 	}
-	function save_faculty(){
+	function save_faculty() {
 		extract($_POST);
 		$data = "";
-		foreach($_POST as $k => $v){
-			if(!in_array($k, array('id','cpass','password')) && !is_numeric($k)){
-				if(empty($data)){
+		foreach ($_POST as $k => $v) {
+			if (!in_array($k, array('id', 'cpass', 'password')) && !is_numeric($k)) {
+				if (empty($data)) {
 					$data .= " $k='$v' ";
-				}else{
+				} else {
 					$data .= ", $k='$v' ";
 				}
 			}
 		}
-		if(!empty($password)){
-					$data .= ", password=md5('$password') ";
-
+		// Save password if provided
+		if (!empty($password)) {
+			$data .= ", password=md5('$password') ";
 		}
-		$check = $this->db->query("SELECT * FROM faculty_list where email ='$email' ".(!empty($id) ? " and id != {$id} " : ''))->num_rows;
-		if($check > 0){
+		// Checking for duplicates
+		$check = $this->db->query("SELECT * FROM faculty_list WHERE email ='$email' " . (!empty($id) ? " AND id != {$id} " : ''))->num_rows;
+		if ($check > 0) {
 			return 2;
 			exit;
 		}
-		$check = $this->db->query("SELECT * FROM faculty_list where school_id ='$school_id' ".(!empty($id) ? " and id != {$id} " : ''))->num_rows;
-		if($check > 0){
+		$check = $this->db->query("SELECT * FROM faculty_list WHERE school_id ='$school_id' " . (!empty($id) ? " AND id != {$id} " : ''))->num_rows;
+		if ($check > 0) {
 			return 3;
 			exit;
 		}
-		if(isset($_FILES['img']) && $_FILES['img']['tmp_name'] != ''){
-			$fname = strtotime(date('y-m-d H:i')).'_'.$_FILES['img']['name'];
-			$move = move_uploaded_file($_FILES['img']['tmp_name'],'assets/uploads/'. $fname);
+		// File upload for avatar
+		if (isset($_FILES['img']) && $_FILES['img']['tmp_name'] != '') {
+			$fname = strtotime(date('y-m-d H:i')) . '_' . $_FILES['img']['name'];
+			$move = move_uploaded_file($_FILES['img']['tmp_name'], 'assets/uploads/' . $fname);
 			$data .= ", avatar = '$fname' ";
-
 		}
-		if(empty($id)){
-			$save = $this->db->query("INSERT INTO faculty_list set $data");
-		}else{
-			$save = $this->db->query("UPDATE faculty_list set $data where id = $id");
+		// Insert or update the faculty record
+		if (empty($id)) {
+			$save = $this->db->query("INSERT INTO faculty_list SET $data");
+		} else {
+			$save = $this->db->query("UPDATE faculty_list SET $data WHERE id = $id");
 		}
-
-		if($save){
+		if ($save) {
 			return 1;
 		}
 	}
+	
 	function delete_faculty(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM faculty_list where id = ".$id);
@@ -688,6 +690,8 @@ Class Action {
 		}
 		return json_encode($data);
 
+
+
 	}
 	function get_report(){
 		extract($_POST);
@@ -817,4 +821,59 @@ Class Action {
             return "Error Deleting Grade: " . $this->db->error;
         }
     }
+
+	// public function fetch_class() {
+	// 	global $conn; // Make sure to access the connection
+	
+	// 	$faculty_id = $_POST['faculty_id'];
+	
+	// 	// Query to fetch classes based on faculty_id
+	// 	$query = "
+	// 		SELECT DISTINCT c.id as cid, CONCAT(c.curriculum, ' - ', c.level, ' ', c.section) as class 
+	// 		FROM restriction_list r 
+	// 		INNER JOIN class_list c ON c.id = r.class_id 
+	// 		WHERE r.faculty_id = '$faculty_id' AND r.academic_id = {$_SESSION['academic']['id']}
+	// 	";
+	
+	// 	$result = $conn->query($query);
+	
+	// 	if ($result) {
+	// 		// Generate options for the class dropdown
+	// 		$options = '<option value="">-- Select Class --</option>';
+	// 		while ($row = $result->fetch_assoc()) {
+	// 			$options .= '<option value="' . $row['cid'] . '">' . $row['class'] . '</option>';
+	// 		}
+	// 		echo $options;
+	// 	} else {
+	// 		echo '<option value="">Error fetching classes</option>'; // Handle query error
+	// 	}
+	// }
+	
+	// public function fetch_subject() {
+	// 	global $conn; // Make sure to access the connection
+	
+	// 	$faculty_id = $_POST['faculty_id'];
+	
+	// 	// Query to fetch subjects based on faculty_id
+	// 	$query = "
+	// 		SELECT DISTINCT s.id as sid, s.code as subject_code, s.subject 
+	// 		FROM restriction_list r 
+	// 		INNER JOIN subject_list s ON s.id = r.subject_id 
+	// 		WHERE r.faculty_id = '$faculty_id' AND r.academic_id = {$_SESSION['academic']['id']}
+	// 	";
+	
+	// 	$result = $conn->query($query);
+	
+	// 	if ($result) {
+	// 		// Generate options for the subject dropdown
+	// 		$options = '<option value="">-- Select Subject --</option>';
+	// 		while ($row = $result->fetch_assoc()) {
+	// 			$options .= '<option value="' . $row['sid'] . '">' . $row['subject_code'] . ' - ' . $row['subject'] . '</option>';
+	// 		}
+	// 		echo $options;
+	// 	} else {
+	// 		echo '<option value="">Error fetching subjects</option>'; // Handle query error
+	// 	}
+	// }
+	
 }

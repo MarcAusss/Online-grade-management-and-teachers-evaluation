@@ -165,7 +165,16 @@ if($action == 'get_report'){
 	if($get)
 		echo $get;
 }
-
+// if($action == 'fetch_class'){
+// 	$get = $crud->fetch_class();
+// 	if($get)
+// 		echo $get;
+// }
+// if($action == 'fetch_subject'){
+// 	$get = $crud->fetch_subject();
+// 	if($get)
+// 		echo $get;
+// }
 if ($action == 'submit_grade') {
 	$save = $crud->submit_grade();
 	if($save)

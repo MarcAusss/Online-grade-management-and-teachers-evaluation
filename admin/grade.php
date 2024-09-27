@@ -1,70 +1,135 @@
-<!-- Include Bootstrap CSS -->
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<?php
+// Include Composer's autoload file for PHPMailer
+require 'vendor/autoload.php';
 
-<!-- Custom Styles -->
+// Import PHPMailer classes into the global namespace
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Create a new PHPMailer instance
+// Handle form submission
+if (isset($_POST['sendEmail'])) {
+    // Get form data
+    $facultyEmail = $_POST['facultyEmail'];
+    $subject = $_POST['emailSubject'];
+    $messageBody = $_POST['emailBody'];
+
+    // Send the email using PHPMailer
+    // Include Composer's autoload file for PHPMailer
+    require 'vendor/autoload.php';
+
+    // Create a new PHPMailer instance
+    $mail = new PHPMailer(true);  // Passing 'true' enables exceptions
+
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'arvingm1522@gmail.com'; // Replace with your actual Gmail
+        $mail->Password = 'guxuezdzfvmqtoks'; // Replace with your app-specific password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        // Recipients
+        $mail->setFrom('arvingm1522@gmail.com', 'Registrar');  // Adjust sender's email and name
+        $mail->addAddress($facultyEmail);  // Use the selected faculty's email
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $messageBody;
+
+        // Send email
+        $mail->send();
+        echo '<script>alert("Message has been sent successfully!");</script>';
+    } catch (Exception $e) {
+        echo "<script>alert('Message could not be sent. Mailer Error: {$mail->ErrorInfo}');</script>";
+    }
+}
+?>
+
 <style>
-  table {
-    width: 100%;
-    border-collapse: collapse;
+.custom-btn {
+    background-color: #28a745; /* Green background */
+    color: white; /* White text */
+    padding: 10px 20px; /* Adjust padding for better look */
+    border-radius: 5px; /* Rounded corners */
+    border: none; /* Remove border */
+    font-size: 16px; /* Adjust font size */
+    cursor: pointer; /* Change cursor to pointer */
   }
 
-  thead th {
-    background-color: #007BFF;
-    color: white;
-    text-align: center;
-  }
-
-  tbody td {
-    text-align: center;
-    vertical-align: middle;
-  }
-
-  tbody tr:nth-child(even) {
-    background-color: #f2f2f2;
-  }
-
-  .table-responsive {
-    margin-top: 20px;
-  }
-
-  .table {
-    border: 1px solid #dee2e6;
-  }
-
-  .table td, .table th {
-    padding: 12px;
-  }
-
-  .card {
-    margin-top: 20px;
-  }
-
-  /* Flex container for filters */
-  .filter-container {
-    display: flex;
-    justify-content: space-between; /* Space between filters */
-    align-items: center; /* Center vertically */
-    margin-bottom: 20px; /* Space below filters */
-  }
-
-  /* Adjust input widths */
-  #classFilter {
-    flex: 1; /* Take available space */
-    margin-right: 10px; /* Space between inputs */
-  }
-
-  #searchInput {
-    flex: 2; /* Take more space than the class filter */
+  /* Hover effect */
+  .custom-btn:hover {
+    background-color: #218838; /* Darker green on hover */
   }
 </style>
 
+<!-- Include Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+       <!-- Button to open modal -->
+       <button type="button" class="btn btn-primary custom-btn" data-toggle="modal" data-target="#emailModal">
+            Send Email to Faculty
+        </button>
 <!-- Card Container for Table -->
 <div class="card">
-  <div class="card-header bg-primary text-white">
+
+<!-- Modal for sending email -->
+<div class="modal fade" id="emailModal" tabindex="-1" role="dialog" aria-labelledby="emailModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="emailModalLabel">Send Email to Faculty</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="emailForm" action="" method="POST">
+          <!-- Faculty Dropdown -->
+          <div class="form-group">
+            <label for="facultyEmail">Select Faculty</label>
+            <select id="facultyEmail" name="facultyEmail" class="form-control" required>
+  <option value="">-- Select Faculty --</option>
+  <option value="all">-- All Faculty --</option> <!-- New option for all faculty -->
+  <?php
+    // Fetch the list of faculty emails
+    $faculty_result = mysqli_query($conn, "SELECT id, CONCAT(firstname, ' ', lastname) as name, email FROM faculty_list");
+    while($faculty = mysqli_fetch_assoc($faculty_result)) {
+      echo "<option value=\"{$faculty['email']}\">{$faculty['name']} - {$faculty['email']}</option>";
+    }
+  ?>
+</select>
+
+          </div>
+
+          <!-- Subject Input -->
+          <div class="form-group">
+            <label for="emailSubject">Subject</label>
+            <input type="text" id="emailSubject" name="emailSubject" class="form-control" placeholder="Enter subject" required>
+          </div>
+
+          <!-- Message Body Input -->
+          <div class="form-group">
+            <label for="emailBody">Message</label>
+            <textarea id="emailBody" name="emailBody" class="form-control" rows="5" placeholder="Enter your message" required></textarea>
+          </div>
+
+          <button type="submit" name="sendEmail" class="btn btn-primary">Send Email</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- End of Modal -->
+<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
     <h4 class="mb-0">Submitted Grades</h4>
   </div>
-  <div class="card-body">
 
+  <div class="card-body">
     <!-- Flex Container for Filters -->
     <div class="filter-container">
       <!-- Class Filter -->
@@ -187,4 +252,3 @@
     });
   });
 </script>
-
