@@ -16,7 +16,7 @@ $astat = array("Not Yet Started","On-going","Closed");
  <div class="col-12">
     <div class="card">
       <div class="card-body">
-        Welcome <?php echo $_SESSION['login_name'] ?>!
+        <h3>Welcome <?php echo $_SESSION['login_name'] ?>!</h3>
         <br>
         <div class="col-md-5">
           <div class="callout callout-info">
@@ -77,3 +77,10 @@ $astat = array("Not Yet Started","On-going","Closed");
             </div>
           </div>
       </div>
+
+
+      <style>
+        .callout.callout-info{
+          border-left-color: #4B1928;
+        }
+      </style>

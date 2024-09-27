@@ -64,7 +64,9 @@ header("location:index.php?page=home");
       </div>
     </div>
     <div class="body-login-left">
-      <img src="./img/casaul.jpg" alt="" class="">
+      <div style="background: maroon; padding: 10px; border-radius: 50%; margin-right: 30px">
+        <img src="./img/1000001215 (2).webp" alt="" style="width: 300px">
+      </div>
     </div>
   </div>
 <!-- /.login-box -->

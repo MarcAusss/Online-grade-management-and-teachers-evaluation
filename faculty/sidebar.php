@@ -1,11 +1,14 @@
-<aside class="main-sidebar sidebar-dark-primary elevation-4">
+<aside class="main-sidebar elevation-4">
     <div class="dropdown">
-        <a href="./" class="brand-link">
-            <h3 class="text-center p-0 m-0"><b>Faculty Panel</b></h3>
-        </a>
+    <a href="./" class="brand-link h-auto">
+        <div class="text-center p-0 m-0">
+          <img src="img/1000001215 (2).webp" alt="" width="80">
+        </div>
+
+    </a>
     </div>
     <div class="sidebar">
-        <nav class="mt-2">
+        <nav style="margin-top: 60px">
             <ul class="nav nav-pills nav-sidebar flex-column nav-flat" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item dropdown">
                     <a href="./" class="nav-link nav-home">
@@ -63,3 +66,11 @@
         }
     });
 </script>
+<style>
+    .active{
+      background-color: #5E1F32 !important;
+    }
+    a:hover{
+      color: #5E1F32 !important;
+    }
+  </style>
