@@ -36,6 +36,13 @@
 							<input type="email" class="form-control form-control-sm" name="email" required value="<?php echo isset($email) ? $email : '' ?>">
 							<small id="#msg"></small>
 						</div>
+
+						<div class="form-group">
+							<label for="" class="control-label">Contact Number</label>
+							<input type="text" name="contact_number" class="form-control form-control-sm" required value="<?php echo isset($contact_number) ? $contact_number : '' ?>">
+						</div>
+					</div>
+
 						<div class="form-group">
 							<label class="control-label">Password</label>
 							<input type="password" class="form-control form-control-sm" name="password" <?php echo !isset($id) ? "required":'' ?>>
