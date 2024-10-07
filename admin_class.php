@@ -247,6 +247,7 @@ Class Action {
 			}
 		}
 	}
+	
 	function save_subject(){
 		extract($_POST);
 		$data = "";
@@ -259,19 +260,20 @@ Class Action {
 				}
 			}
 		}
-		$chk = $this->db->query("SELECT * FROM subject_list where code = '$code' and id != '{$id}' ")->num_rows;
+		$chk = $this->db->query("SELECT * FROM subject_list WHERE code = '$code' AND id != '{$id}'")->num_rows;
 		if($chk > 0){
 			return 2;
 		}
 		if(empty($id)){
-			$save = $this->db->query("INSERT INTO subject_list set $data");
+			$save = $this->db->query("INSERT INTO subject_list SET $data");
 		}else{
-			$save = $this->db->query("UPDATE subject_list set $data where id = $id");
+			$save = $this->db->query("UPDATE subject_list SET $data WHERE id = $id");
 		}
 		if($save){
 			return 1;
 		}
 	}
+	
 	function delete_subject(){
 		extract($_POST);
 		$delete = $this->db->query("DELETE FROM subject_list where id = $id");
@@ -721,66 +723,89 @@ Class Action {
 	}
 	
 	public function fetch_questions() {
-        include 'db_connect.php'; // Adjust this to your database connection file
-        
-        $academic_id = $_SESSION['academic']['id'];
-        $faculty_id = $_POST['faculty_id'];
-        $class_id = $_POST['class_id'];
-        $subject_id = $_POST['subject_id'];
-
-        $query = "
-            SELECT q.*, c.criteria 
-            FROM question_list q 
-            INNER JOIN criteria_list c ON c.id = q.criteria_id 
-            WHERE q.academic_id = '$academic_id'
-            ORDER BY ABS(q.order_by) ASC
-        ";
-        $questions = $conn->query($query);
-
-        $response = '';
-        while ($row = $questions->fetch_assoc()) {
-            $response .= "
-                <table class='table table-condensed'>
-                    <thead>
-                        <tr class='bg-gradient-secondary'>
-                            <th>{$row['criteria']}</th>
-                            <th class='text-center'>1</th>
-                            <th class='text-center'>2</th>
-                            <th class='text-center'>3</th>
-                            <th class='text-center'>4</th>
-                            <th class='text-center'>5</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class='bg-white'>
-                            <td>{$row['question']}</td>
-                            <td><input type='radio' name='rate[{$row['id']}]' value='1' required></td>
-                            <td><input type='radio' name='rate[{$row['id']}]' value='2'></td>
-                            <td><input type='radio' name='rate[{$row['id']}]' value='3'></td>
-                            <td><input type='radio' name='rate[{$row['id']}]' value='4'></td>
-                            <td><input type='radio' name='rate[{$row['id']}]' value='5'></td>
-                        </tr>
-                    </tbody>
-                </table>
-            ";
-        }
-        return $response;
-    }
+		include 'db_connect.php'; // Adjust this to your database connection file
+		
+		$academic_id = $_SESSION['academic']['id'];
+		$faculty_id = $_POST['faculty_id'];
+		$class_id = $_POST['class_id'];
+		$subject_id = $_POST['subject_id'];
+	
+		// Query to fetch questions with criteria
+		$query = "
+			SELECT q.*, c.criteria 
+			FROM question_list q 
+			INNER JOIN criteria_list c ON c.id = q.criteria_id 
+			WHERE q.academic_id = '$academic_id'
+			ORDER BY c.criteria ASC, ABS(q.order_by) ASC
+		";
+		$questions = $conn->query($query);
+	
+		$current_criteria = '';
+		$response = '';
+	
+		while ($row = $questions->fetch_assoc()) {
+			// If the criteria has changed, close the previous table and start a new one
+			if ($current_criteria != $row['criteria']) {
+				// Close previous table if one exists
+				if ($current_criteria != '') {
+					$response .= "</tbody></table>";
+				}
+	
+				// Start new table for the new criteria
+				$current_criteria = $row['criteria'];
+				$response .= "
+					<table class='table table-condensed'>
+						<thead>
+							<tr class='bg-gradient-secondary'>
+								<th>{$row['criteria']}</th>
+								<th class='text-center'>1</th>
+								<th class='text-center'>2</th>
+								<th class='text-center'>3</th>
+								<th class='text-center'>4</th>
+								<th class='text-center'>5</th>
+							</tr>
+						</thead>
+						<tbody>
+				";
+			}
+	
+			// Add the question to the current table
+			$response .= "
+				<tr class='bg-white'>
+					<td>{$row['question']}</td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='1' required></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='2'></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='3'></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='4'></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='5'></td>
+				</tr>
+			";
+		}
+	
+		// Close the last table if any questions were added
+		if ($current_criteria != '') {
+			$response .= "</tbody></table>";
+		}
+	
+		return $response;
+	}
+	
 
 	function submit_grade() {
 		// Ensure POST data is available
-		if (isset($_POST['student_id'], $_POST['subject_id'], $_POST['grade'])) {
+		if (isset($_POST['student_id'], $_POST['subject_id'], $_POST['grade'], $_POST['term'])) {
 			$student_id = $_POST['student_id'];
 			$subject_id = $_POST['subject_id'];
 			$grade = $_POST['grade'];
+			$term = $_POST['term']; // Get the term value
 			$faculty_id = $_SESSION['login_id']; // Assuming this is set
 	
 			// Prepare the query
-			$query = "INSERT INTO grades (student_id, subject_id, faculty_id, grade) VALUES (?, ?, ?, ?)";
+			$query = "INSERT INTO grades (student_id, subject_id, faculty_id, grade, term) VALUES (?, ?, ?, ?, ?)";
 			$stmt = $this->db->prepare($query);
 	
 			// Bind parameters
-			$stmt->bind_param("iiid", $student_id, $subject_id, $faculty_id, $grade);
+			$stmt->bind_param("iiids", $student_id, $subject_id, $faculty_id, $grade, $term);
 	
 			// Execute the query
 			if ($stmt->execute()) {
@@ -795,6 +820,7 @@ Class Action {
 			echo "Invalid input.";
 		}
 	}
+	
 	public function edit_grade() {
         $grade_id = $_POST['grade_id'];
         $grade = $_POST['grade'];
