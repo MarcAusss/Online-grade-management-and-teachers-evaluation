@@ -17,34 +17,46 @@ $subjects = mysqli_query($conn, "SELECT id, code FROM subject_list");
             <h4>Submit Grades</h4>
         </div>
         <div class="card-body">
-        <form action="submit_grade_action.php" method="POST" id="submit-grade-form">
-    <div class="form-group">
-        <label for="student">Select Student</label>
-        <select class="form-control" name="student_id" required>
-            <option value="" disabled selected>Select Student</option>
-            <?php while($row = mysqli_fetch_assoc($students)): ?>
-                <option value="<?= $row['id'] ?>"><?= $row['firstname'] . ' ' . $row['lastname'] ?></option>
-            <?php endwhile; ?>
-        </select>
-    </div>
+            <form action="submit_grade_action.php" method="POST" id="submit-grade-form">
+                <div class="form-group">
+                    <label for="student">Select Student</label>
+                    <select class="form-control" name="student_id" required>
+                        <option value="" disabled selected>Select Student</option>
+                        <?php while($row = mysqli_fetch_assoc($students)): ?>
+                            <option value="<?= $row['id'] ?>"><?= $row['firstname'] . ' ' . $row['lastname'] ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-    <div class="form-group">
-        <label for="subject">Select Subject</label>
-        <select class="form-control" name="subject_id" required>
-            <option value="" disabled selected>Select Subject</option>
-            <?php while($row = mysqli_fetch_assoc($subjects)): ?>
-                <option value="<?= $row['id'] ?>"><?= $row['code'] ?></option>
-            <?php endwhile; ?>
-        </select>
-    </div>
+                <div class="form-group">
+                    <label for="subject">Select Subject</label>
+                    <select class="form-control" name="subject_id" required>
+                        <option value="" disabled selected>Select Subject</option>
+                        <?php while($row = mysqli_fetch_assoc($subjects)): ?>
+                            <option value="<?= $row['id'] ?>"><?= $row['code'] ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-    <div class="form-group">
-        <label for="grade">Enter Grade</label>
-        <input type="number" class="form-control" name="grade" step="0.01" min="60" max="100" required>
-    </div>
+                <!-- New Term Field -->
+                <div class="form-group">
+                    <label for="term">Select Term</label>
+                    <select class="form-control" name="term" required>
+                        <option value="" disabled selected>Select Term</option>
+                        <option value="Prelim">Prelim</option>
+                        <option value="Midterm">Midterm</option>
+                        <option value="Pre-Finals">Pre-Finals</option>
+                        <option value="Finals">Finals</option>
+                    </select>
+                </div>
 
-    <button type="submit" class="btn btn-primary">Submit Grade</button>
-</form>
+                <div class="form-group">
+                    <label for="grade">Enter Grade</label>
+                    <input type="number" class="form-control" name="grade" step="0.01" min="60" max="100" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Grade</button>
+            </form>
         </div>
     </div>
 
@@ -60,6 +72,7 @@ $subjects = mysqli_query($conn, "SELECT id, code FROM subject_list");
                         <tr>
                             <th>Student</th>
                             <th>Subject</th>
+                            <th>Term</th> <!-- New column for Term -->
                             <th>Grade</th>
                             <th>Submitted On</th>
                             <th>Actions</th>
@@ -68,7 +81,7 @@ $subjects = mysqli_query($conn, "SELECT id, code FROM subject_list");
                     <tbody>
                         <?php
                         // Fetch submitted grades
-                        $grades = mysqli_query($conn, "SELECT g.id, CONCAT(s.firstname, ' ', s.lastname) AS student_name, sub.code, g.grade, g.timestamp 
+                        $grades = mysqli_query($conn, "SELECT g.id, CONCAT(s.firstname, ' ', s.lastname) AS student_name, sub.code, g.term, g.grade, g.timestamp 
                                                        FROM grades g
                                                        JOIN student_list s ON g.student_id = s.id
                                                        JOIN subject_list sub ON g.subject_id = sub.id");
@@ -77,11 +90,12 @@ $subjects = mysqli_query($conn, "SELECT id, code FROM subject_list");
                             <tr>
                                 <td><?= $row['student_name'] ?></td>
                                 <td><?= $row['code'] ?></td>
+                                <td><?= $row['term'] ?></td> <!-- Display term -->
                                 <td><?= $row['grade'] ?></td>
                                 <td><?= $row['timestamp'] ?></td>
                                 <td>
-                                <button class="btn btn-sm btn-warning edit-grade" data-id="<?= $row['id'] ?>" data-grade="<?= $row['grade'] ?>">Edit</button>
-                                 <button class="btn btn-sm btn-danger delete-grade" data-id="<?= $row['id'] ?>">Delete</button>
+                                    <button class="btn btn-sm btn-warning edit-grade" data-id="<?= $row['id'] ?>" data-grade="<?= $row['grade'] ?>">Edit</button>
+                                    <button class="btn btn-sm btn-danger delete-grade" data-id="<?= $row['id'] ?>">Delete</button>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
@@ -91,7 +105,7 @@ $subjects = mysqli_query($conn, "SELECT id, code FROM subject_list");
         </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
 $(document).ready(function() {
     $('#submit-grade-form').on('submit', function(e) {

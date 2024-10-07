@@ -160,6 +160,7 @@ if (isset($_POST['sendEmail'])) {
           <tr>
             <th>Student</th>
             <th>Subject</th>
+            <th>Term</th>
             <th>Grade</th>
             <th>Class</th>
             <th>Professor</th>
@@ -173,18 +174,19 @@ if (isset($_POST['sendEmail'])) {
 
             // Base query to fetch grades and join with the student, subject, faculty, and class tables.
             $query = "SELECT g.*, 
-                      CONCAT(s.firstname, ' ', s.lastname) as student_name, 
-                      sub.code, 
-                      IFNULL(CONCAT(f.firstname, ' ', f.lastname), 'Unknown') as faculty_name, 
-                      c.curriculum, 
-                      c.level, 
-                      c.section, 
-                      g.timestamp 
-                      FROM grades g
-                      JOIN student_list s ON g.student_id = s.id
-                      JOIN subject_list sub ON g.subject_id = sub.id
-                      LEFT JOIN faculty_list f ON g.faculty_id = f.id
-                      JOIN class_list c ON s.class_id = c.id"; // Join with class_list
+                  CONCAT(s.firstname, ' ', s.lastname) as student_name, 
+                  sub.code, 
+                  IFNULL(CONCAT(f.firstname, ' ', f.lastname), 'Unknown') as faculty_name, 
+                  c.curriculum, 
+                  c.level, 
+                  c.section, 
+                  g.timestamp,
+                  g.term  -- Added term column here
+                  FROM grades g
+                  JOIN student_list s ON g.student_id = s.id
+                  JOIN subject_list sub ON g.subject_id = sub.id
+                  LEFT JOIN faculty_list f ON g.faculty_id = f.id
+                  JOIN class_list c ON s.class_id = c.id";
 
             // Add filtering condition if a specific class is selected
             if ($class_id_filter) {
@@ -204,6 +206,7 @@ if (isset($_POST['sendEmail'])) {
               echo "<tr>
                       <td>{$row['student_name']}</td>
                       <td>{$row['code']}</td>
+                      <td>{$row['term']}</td> 
                       <td>{$row['grade']}</td>
                       <td>{$class_info}</td>
                       <td>{$row['faculty_name']}</td>
