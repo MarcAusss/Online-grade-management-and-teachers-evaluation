@@ -14,8 +14,7 @@ if (isset($_POST['sendEmail'])) {
     $subject = $_POST['emailSubject'];
     $messageBody = $_POST['emailBody'];
 
-    // Send the email using PHPMailer
-    // Include Composer's autoload file for PHPMailer
+
     require 'vendor/autoload.php';
 
     // Create a new PHPMailer instance
@@ -125,15 +124,22 @@ if (isset($_POST['sendEmail'])) {
 </div>
 
 <!-- End of Modal -->
-<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+<div>
+  <div class="card-header text-black d-flex justify-content-between align-items-center">
     <h4 class="mb-0">Submitted Grades</h4>
   </div>
 
   <div class="card-body">
     <!-- Flex Container for Filters -->
-    <div class="filter-container">
-      <!-- Class Filter -->
-      <div class="form-group mb-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <!-- Search Input on the left side -->
+      <div class="col-md-4 pl-0">
+        <label for="searchInput" class="sr-only">Search by Student:</label>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by Student Name...">
+      </div>
+
+      <!-- Class Filter on the right side -->
+      <div class="col-md-3 pr-0">
         <label for="classFilter" class="sr-only">Filter by Class:</label>
         <select id="classFilter" class="form-control">
           <option value="">All Classes</option>
@@ -146,22 +152,19 @@ if (isset($_POST['sendEmail'])) {
           ?>
         </select>
       </div>
-
-      <!-- Search Input -->
-      <div class="form-group mb-0">
-        <label for="searchInput" class="sr-only">Search by Student:</label>
-        <input type="text" id="searchInput" class="form-control" placeholder="Search by Student Name...">
-      </div>
     </div>
 
+    <!-- Updated Grades Table -->
     <div class="table-responsive">
       <table class="table table-bordered table-hover" id="gradesTable">
         <thead>
           <tr>
             <th>Student</th>
             <th>Subject</th>
-            <th>Term</th>
-            <th>Grade</th>
+            <th>Prelim</th>
+            <th>Midterm</th>
+            <th>Pre-Finals</th>
+            <th>Finals</th>
             <th>Class</th>
             <th>Professor</th>
             <th>Submitted On</th>
@@ -169,50 +172,45 @@ if (isset($_POST['sendEmail'])) {
         </thead>
         <tbody>
           <?php 
-            // Set a variable to hold the class ID for filtering
-            $class_id_filter = isset($_GET['class_id']) ? intval($_GET['class_id']) : '';
-
             // Base query to fetch grades and join with the student, subject, faculty, and class tables.
-            $query = "SELECT g.*, 
-                  CONCAT(s.firstname, ' ', s.lastname) as student_name, 
-                  sub.code, 
-                  IFNULL(CONCAT(f.firstname, ' ', f.lastname), 'Unknown') as faculty_name, 
-                  c.curriculum, 
-                  c.level, 
-                  c.section, 
-                  g.timestamp,
-                  g.term  -- Added term column here
-                  FROM grades g
-                  JOIN student_list s ON g.student_id = s.id
-                  JOIN subject_list sub ON g.subject_id = sub.id
-                  LEFT JOIN faculty_list f ON g.faculty_id = f.id
-                  JOIN class_list c ON s.class_id = c.id";
-
-            // Add filtering condition if a specific class is selected
-            if ($class_id_filter) {
-              $query .= " WHERE s.class_id = $class_id_filter";
-            }
+            $query = "
+              SELECT g.student_id, g.subject_id, CONCAT(s.firstname, ' ', s.lastname) as student_name,
+                     sub.code, 
+                     MAX(CASE WHEN g.term = 'Prelim' THEN g.grade END) AS Prelim,
+                     MAX(CASE WHEN g.term = 'Midterm' THEN g.grade END) AS Midterm,
+                     MAX(CASE WHEN g.term = 'Pre-Finals' THEN g.grade END) AS PreFinals,
+                     MAX(CASE WHEN g.term = 'Finals' THEN g.grade END) AS Finals,
+                     IFNULL(CONCAT(f.firstname, ' ', f.lastname), 'Unknown') as faculty_name, 
+                     CONCAT(c.curriculum, ' - Level ', c.level, ' - Section ', c.section) as class_info,
+                     g.timestamp
+              FROM grades g
+              JOIN student_list s ON g.student_id = s.id
+              JOIN subject_list sub ON g.subject_id = sub.id
+              LEFT JOIN faculty_list f ON g.faculty_id = f.id
+              JOIN class_list c ON s.class_id = c.id
+              GROUP BY g.student_id, g.subject_id
+            ";
 
             $grades = mysqli_query($conn, $query);
 
             // Displaying the data in the table.
-            while($row = mysqli_fetch_assoc($grades)) {
+            while ($row = mysqli_fetch_assoc($grades)) {
               // Format the timestamp to "Month Day, Year" and 12-hour time format
               $formatted_timestamp = date('F j, Y, g:i A', strtotime($row['timestamp']));
-              
-              // Concatenate curriculum, level, and section for the Class column
-              $class_info = "{$row['curriculum']} - Level {$row['level']} - Section {$row['section']}";
-
+          
+              // Using isset() to check if the value exists, otherwise default to 'N/A'
               echo "<tr>
                       <td>{$row['student_name']}</td>
                       <td>{$row['code']}</td>
-                      <td>{$row['term']}</td> 
-                      <td>{$row['grade']}</td>
-                      <td>{$class_info}</td>
+                      <td>" . (isset($row['Prelim']) ? $row['Prelim'] : 'N/A') . "</td>
+                      <td>" . (isset($row['Midterm']) ? $row['Midterm'] : 'N/A') . "</td>
+                      <td>" . (isset($row['PreFinals']) ? $row['PreFinals'] : 'N/A') . "</td>
+                      <td>" . (isset($row['Finals']) ? $row['Finals'] : 'N/A') . "</td>
+                      <td>{$row['class_info']}</td>
                       <td>{$row['faculty_name']}</td>
                       <td>{$formatted_timestamp}</td>
                     </tr>";
-            }
+          }
           ?>
         </tbody>
       </table>
@@ -225,17 +223,14 @@ if (isset($_POST['sendEmail'])) {
  document.getElementById('classFilter').addEventListener('change', function() {
     const classId = this.value;
 
-    // Check if "All Classes" is selected
+    // Redirect to the appropriate URL based on selected class filter
     if (classId === "") {
-      // Redirect to the specific URL
       window.location.href = "http://localhost/php/eval/index.php?page=grade";
     } else {
-      // Redirect to the same page with the selected class filter
-      const currentPage = window.location.pathname; // Get the current page URL
-      const params = new URLSearchParams(window.location.search); // Get existing query params
-      params.set('class_id', classId); // Set the new class ID
-
-      window.location.href = currentPage + '?' + params.toString(); // Redirect with updated params
+      const currentPage = window.location.pathname;
+      const params = new URLSearchParams(window.location.search);
+      params.set('class_id', classId);
+      window.location.href = currentPage + '?' + params.toString();
     }
   });
 
