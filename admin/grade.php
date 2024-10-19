@@ -31,7 +31,7 @@ if (isset($_POST['sendEmail'])) {
         $mail->Port = 587;
 
         // Recipients
-        $mail->setFrom('arvingm1522@gmail.com', 'Registrar');  // Adjust sender's email and name
+        $mail->setFrom('arvingm1522@gmail.com', 'Registrar CASAUL');  // Adjust sender's email and name
         $mail->addAddress($facultyEmail);  // Use the selected faculty's email
 
         // Content
