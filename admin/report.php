@@ -211,8 +211,7 @@ function ordinal_suffix($num){
             $(this).addClass('active');
         });
     }
-
-	function load_report($faculty_id, $subject_id, $class_id){
+    function load_report($faculty_id, $subject_id, $class_id){
     if($('#preloader2').length <= 0)
         start_load();
     $.ajax({
@@ -236,36 +235,37 @@ function ordinal_suffix($num){
                     $('#print-btn').show();
                     $('#tse').text(resp.tse);
                     $('.rates').text('-');
+
                     var data = resp.data;
-                    var totalResponses = 0; // To count total responses
-                    var positiveResponses = 0; // To count positive responses (scores of 4 and 5)
-                    var totalRating = 0; // To sum the ratings
+                    var totalResponses = 0;
+                    var totalScore = 0;
+
                     Object.keys(data).map(q => {
+                        let questionTotalScore = 0;
+                        let questionTotalResponses = 0;
+
                         Object.keys(data[q]).map(r => {
-                            $('.rate_' + r + '_' + q).text(data[q][r] + '%');
-                            totalResponses += data[q][r]; // Count responses
-                            totalRating += r * data[q][r]; // Calculate total rating
-                            if (r >= 4) { // Count positive responses (scores of 4 and 5)
-                                positiveResponses += data[q][r];
-                            }
+                            const rate = parseInt(r);
+                            const frequency = data[q][r];
+                            $('.rate_' + r + '_' + q).text(frequency + '%');
+
+                            questionTotalScore += rate * frequency;
+                            questionTotalResponses += frequency;
+
+                            totalScore += rate * frequency;
+                            totalResponses += frequency;
                         });
+
+                        const mean = (questionTotalScore / questionTotalResponses).toFixed(2);
+                        console.log(`Question ${q}: Mean = ${mean}`);
                     });
-                    // Calculate effectiveness rating
-                    var effectivenessPercentage = totalResponses > 0 ? (positiveResponses / totalResponses * 100).toFixed(2) : 0;
 
-                    // Determine effectiveness level based on percentage
-                    var effectivenessLevel;
-                    if (effectivenessPercentage >= 81) {
-                        effectivenessLevel = "Highly Effective";
-                    } else if (effectivenessPercentage >= 61) {
-                        effectivenessLevel = "Effective";
-                    } else if (effectivenessPercentage >= 41) {
-                        effectivenessLevel = "Minimally Effective";
-                    } else {
-                        effectivenessLevel = "Ineffective";
-                    }
+                    // Calculate overall mean
+                    const overallMean = (totalScore / totalResponses).toFixed(2);
+                    const effectivenessLevel = getPerformanceLevel(overallMean);
 
-                    $('#effectivenessRating').text(effectivenessLevel + ' (' + effectivenessPercentage + '%)'); // Display effectiveness rating
+                    // Display effectiveness rating
+                    $('#effectivenessRating').text(`${effectivenessLevel} (Mean: ${overallMean})`);
                 }
             }
         },
@@ -274,6 +274,16 @@ function ordinal_suffix($num){
         }
     });
 }
+
+// Function to determine Performance Level (PL) based on mean
+function getPerformanceLevel(mean) {
+    if (mean >= 4.21) return 'Highly Effective';
+    if (mean >= 3.41) return 'Effective';
+    if (mean >= 2.61) return 'Moderately Effective';
+    if (mean >= 1.81) return 'Minimally Effective';
+    return 'Ineffective';
+}
+
 
     $('#print-btn').click(function(){
         start_load();

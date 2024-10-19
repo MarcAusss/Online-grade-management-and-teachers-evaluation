@@ -2,6 +2,9 @@
 include '../db_connect.php';
 ?>
 <div class="container-fluid">
+		<div class="text-right mb-2">
+					<a href="index.php?page=all_restrictions" class="btn btn-sm btn-primary">View All Restrictions</a>
+				</div>
 	<form action="" id="manage-restriction">
 		<div class="row">
 			<div class="col-md-4 border-right">
@@ -145,3 +148,4 @@ include '../db_connect.php';
 	})
 
 </script>
+
