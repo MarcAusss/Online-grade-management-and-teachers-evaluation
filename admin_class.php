@@ -635,16 +635,17 @@ Class Action {
 			return 1;
 	}
 	public function save_evaluation() {
-		include 'db_connect.php'; // Adjust this to your database connection file
+		include 'db_connect.php'; // Ensure proper DB connection
 	
 		$academic_id = $_POST['academic_id'];
 		$faculty_id = $_POST['faculty_id'];
 		$class_id = $_POST['class_id'];
 		$subject_id = $_POST['subject_id'];
-		$student_id = $_SESSION['login_id']; // Assuming the student ID is stored in session
+		$student_id = $_SESSION['login_id'];
 		$date_taken = date('Y-m-d H:i:s');
+		$comments = isset($_POST['comments']) ? trim($_POST['comments']) : ''; // Fetch comments
 	
-		// Check if there is a restriction that allows this evaluation
+		// Check for restrictions
 		$restriction_check_query = "
 			SELECT * FROM restriction_list 
 			WHERE academic_id = ? AND faculty_id = ? AND class_id = ? AND subject_id = ?
@@ -655,8 +656,7 @@ Class Action {
 		$result = $stmt->get_result();
 	
 		if ($result->num_rows === 0) {
-			// No restriction found, return an error
-			return json_encode(array('status' => 'error', 'message' => 'You are not allowed to evaluate this combination.'));
+			return json_encode(['status' => 'error', 'message' => 'You are not allowed to evaluate this combination.']);
 		}
 	
 		// Insert into evaluation_list
@@ -669,19 +669,33 @@ Class Action {
 		$stmt->execute();
 		$evaluation_id = $conn->insert_id;
 	
-		// Insert answers into evaluation_answers
+		// Insert answers into evaluation_answers (for ratings)
 		foreach ($_POST['rate'] as $question_id => $rate) {
 			$insert_answer = "
-				INSERT INTO evaluation_answers (evaluation_id, question_id, rate) 
-				VALUES (?, ?, ?)
+				INSERT INTO evaluation_answers (evaluation_id, question_id, rate, comment) 
+				VALUES (?, ?, ?, NULL)  -- Comment is NULL for ratings
 			";
 			$stmt = $conn->prepare($insert_answer);
 			$stmt->bind_param("iid", $evaluation_id, $question_id, $rate);
 			$stmt->execute();
 		}
 	
-		return json_encode(array('status' => 'success', 'message' => 'Evaluation successfully saved.')); // Success
+		// Insert the comment (only once) if provided
+		if (!empty($comments)) {
+			$insert_comment = "
+				INSERT INTO evaluation_answers (evaluation_id, question_id, rate, comment) 
+				VALUES (?, NULL, NULL, ?)
+			";
+			$stmt = $conn->prepare($insert_comment);
+			$stmt->bind_param("is", $evaluation_id, $comments);
+			$stmt->execute();
+		}
+	
+		return json_encode(['status' => 'success', 'message' => 'Evaluation successfully saved.']);
 	}
+	
+	
+
 	
 	function get_class(){
 		extract($_POST);
@@ -695,36 +709,71 @@ Class Action {
 
 
 	}
-	function get_report(){
+	function get_report() {
 		extract($_POST);
 		$data = array();
-		$get = $this->db->query("SELECT * FROM evaluation_answers where evaluation_id in (SELECT evaluation_id FROM evaluation_list where academic_id = {$_SESSION['academic']['id']} and faculty_id = $faculty_id and subject_id = $subject_id and class_id = $class_id ) ");
-		$answered = $this->db->query("SELECT * FROM evaluation_list where academic_id = {$_SESSION['academic']['id']} and faculty_id = $faculty_id and subject_id = $subject_id and class_id = $class_id");
-			$rate = array();
-		while($row = $get->fetch_assoc()){
-			if(!isset($rate[$row['question_id']][$row['rate']]))
-			$rate[$row['question_id']][$row['rate']] = 0;
+	
+		// Fetch evaluation answers for ratings and comments
+		$get = $this->db->query("
+			SELECT question_id, rate, comment 
+			FROM evaluation_answers 
+			WHERE evaluation_id IN (
+				SELECT evaluation_id 
+				FROM evaluation_list 
+				WHERE academic_id = {$_SESSION['academic']['id']} 
+				AND faculty_id = $faculty_id 
+				AND subject_id = $subject_id 
+				AND class_id = $class_id
+			)
+		");
+	
+		// Fetch the total number of evaluations
+		$answered = $this->db->query("
+			SELECT * 
+			FROM evaluation_list 
+			WHERE academic_id = {$_SESSION['academic']['id']} 
+			AND faculty_id = $faculty_id 
+			AND subject_id = $subject_id 
+			AND class_id = $class_id
+		");
+	
+		$rate = array();
+		$comments = array();
+	
+		while ($row = $get->fetch_assoc()) {
+			// Handle ratings
+			if (!isset($rate[$row['question_id']][$row['rate']])) {
+				$rate[$row['question_id']][$row['rate']] = 0;
+			}
 			$rate[$row['question_id']][$row['rate']] += 1;
-
+	
+			// Collect comments if available
+			if (!empty($row['comment'])) {
+				$comments[] = $row['comment'];
+			}
 		}
-		// $data[]= $row;
+	
+		// Calculate the percentage ratings
 		$ta = $answered->num_rows;
 		$r = array();
-		foreach($rate as $qk => $qv){
-			foreach($qv as $rk => $rv){
-			$r[$qk][$rk] =($rate[$qk][$rk] / $ta) *100;
+		foreach ($rate as $qk => $qv) {
+			foreach ($qv as $rk => $rv) {
+				$r[$qk][$rk] = ($rate[$qk][$rk] / $ta) * 100;
+			}
 		}
-	}
-	$data['tse'] = $ta;
-	$data['data'] = $r;
-		
+	
+		// Prepare the response data
+		$data['tse'] = $ta;
+		$data['data'] = $r;
+		$data['comments'] = $comments;
+	
 		return json_encode($data);
-
 	}
+	
 	
 	public function fetch_questions() {
 		include 'db_connect.php'; // Adjust this to your database connection file
-		
+	
 		$academic_id = $_SESSION['academic']['id'];
 		$faculty_id = $_POST['faculty_id'];
 		$class_id = $_POST['class_id'];
@@ -774,10 +823,10 @@ Class Action {
 				<tr class='bg-white'>
 					<td>{$row['question']}</td>
 					<td><input type='radio' name='rate[{$row['id']}]' value='1' required></td>
-					<td><input type='radio' name='rate[{$row['id']}]' value='2'></td>
-					<td><input type='radio' name='rate[{$row['id']}]' value='3'></td>
-					<td><input type='radio' name='rate[{$row['id']}]' value='4'></td>
-					<td><input type='radio' name='rate[{$row['id']}]' value='5'></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='2' required></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='3' required></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='4' required></td>
+					<td><input type='radio' name='rate[{$row['id']}]' value='5' required></td>
 				</tr>
 			";
 		}
@@ -787,8 +836,17 @@ Class Action {
 			$response .= "</tbody></table>";
 		}
 	
+		// Append comments section at the bottom
+		$response .= "
+			<div class='form-group'>
+				<label for='comments'>Additional Comments/Suggestions (optional)</label>
+				<textarea id='comments' name='comments' class='form-control' rows='4'></textarea>
+			</div>
+		";
+	
 		return $response;
 	}
+	
 	
 
 	function submit_grade() {
