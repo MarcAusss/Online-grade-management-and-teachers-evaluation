@@ -72,6 +72,7 @@ function ordinal_suffix($num){
         <legend class="w-auto">Rating Legend</legend>
         <p>5 = Strongly Agree, 4 = Agree, 3 = Uncertain, 2 = Disagree, 1 = Strongly Disagree</p>
     </fieldset>
+
     <?php 
     $q_arr = array();
     $criteria = $conn->query("SELECT * FROM criteria_list where id in (SELECT criteria_id FROM question_list where academic_id = {$_SESSION['academic']['id']} ) order by abs(order_by) asc ");
@@ -108,6 +109,13 @@ function ordinal_suffix($num){
         </tbody>
     </table>
     <?php endwhile; ?>
+
+</div>
+<h4 class="mt-4 text-primary">💬 Comments from Students:</h4>
+<div id="commentsSection" class="border rounded p-3 bg-light">
+    <div class="comment my-2 p-2 border-bottom">
+        <p class="mb-1 text-secondary"><em>Loading comments...</em></p>
+    </div>
 </div>
 
         </div>
@@ -121,6 +129,31 @@ function ordinal_suffix($num){
 </style>
 <noscript>
     <style>
+        #commentsSection {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.comment {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.comment:last-child {
+    border-bottom: none; /* Remove border for the last comment */
+}
+
+.comment p {
+    font-size: 15px;
+    margin-bottom: 0;
+}
+
+.comment-header {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -211,31 +244,33 @@ function ordinal_suffix($num){
             $(this).addClass('active');
         });
     }
-    function load_report($faculty_id, $subject_id, $class_id){
-    if($('#preloader2').length <= 0)
-        start_load();
+    function load_report($faculty_id, $subject_id, $class_id) {
+    if ($('#preloader2').length <= 0) start_load();
+
     $.ajax({
         url: 'ajax.php?action=get_report',
         method: "POST",
-        data: {faculty_id: $faculty_id, subject_id: $subject_id, class_id: $class_id},
-        error: function(err){
+        data: { faculty_id: $faculty_id, subject_id: $subject_id, class_id: $class_id },
+        error: function (err) {
             console.log(err);
             alert_toast("An Error Occurred.", "error");
             end_load();
         },
-        success: function(resp){
-            if(resp){
+        success: function (resp) {
+            if (resp) {
                 resp = JSON.parse(resp);
-                if(Object.keys(resp).length <= 0){
+                if (Object.keys(resp).length <= 0) {
                     $('.rates').text('');
                     $('#tse').text('');
                     $('#print-btn').hide();
-                    $('#effectivenessRating').text(''); // Clear effectiveness rating
+                    $('#effectivenessRating').text('');
+                    $('#commentsSection').html('<p>No comments available.</p>');
                 } else {
                     $('#print-btn').show();
                     $('#tse').text(resp.tse);
                     $('.rates').text('-');
 
+                    // Handle ratings
                     var data = resp.data;
                     var totalResponses = 0;
                     var totalScore = 0;
@@ -263,17 +298,28 @@ function ordinal_suffix($num){
                     // Calculate overall mean
                     const overallMean = (totalScore / totalResponses).toFixed(2);
                     const effectivenessLevel = getPerformanceLevel(overallMean);
-
-                    // Display effectiveness rating
                     $('#effectivenessRating').text(`${effectivenessLevel} (Mean: ${overallMean})`);
+
+                    // Handle comments
+                    let commentsHtml = '<ul>';
+                    if (resp.comments.length > 0) {
+                        resp.comments.forEach(comment => {
+                            commentsHtml += `<li>${comment}</li>`;
+                        });
+                    } else {
+                        commentsHtml += '<li>No comments available.</li>';
+                    }
+                    commentsHtml += '</ul>';
+                    $('#commentsSection').html(commentsHtml);
                 }
             }
         },
-        complete: function(){
+        complete: function () {
             end_load();
         }
     });
 }
+
 
 // Function to determine Performance Level (PL) based on mean
 function getPerformanceLevel(mean) {

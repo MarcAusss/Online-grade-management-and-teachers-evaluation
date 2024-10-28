@@ -179,3 +179,8 @@ $('#submit-evaluation').click(function() {
     $('#manage-evaluation').submit();
 });
 </script>
+
+
+<!-- ALTER TABLE `evaluation_answers`
+MODIFY `question_id` INT(30) NULL,
+MODIFY `rate` INT(20) NULL;  -->
