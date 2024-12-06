@@ -31,15 +31,33 @@ if ($academic) {
     );
 }
 
-// Fetch distinct faculty, class, and subject for dropdowns
-$faculty_query = "SELECT DISTINCT f.id as fid, CONCAT(f.firstname, ' ', f.lastname) as faculty FROM restriction_list r INNER JOIN faculty_list f ON f.id = r.faculty_id WHERE r.academic_id = {$_SESSION['academic']['id']}";
+// Fetch distinct faculty for dropdown
+$faculty_query = "
+    SELECT DISTINCT f.id as fid, CONCAT(f.firstname, ' ', f.lastname) as faculty
+    FROM restriction_list r 
+    INNER JOIN faculty_list f ON f.id = r.faculty_id
+    WHERE r.academic_id = {$_SESSION['academic']['id']}
+";
 $faculty_list = $conn->query($faculty_query);
 
-$class_query = "SELECT DISTINCT c.id as cid, CONCAT(c.curriculum, ' - ', c.level, ' ', c.section) as class FROM restriction_list r INNER JOIN class_list c ON c.id = r.class_id WHERE r.academic_id = {$_SESSION['academic']['id']}";
+// Fetch distinct class for dropdown
+$class_query = "
+    SELECT DISTINCT c.id as cid, CONCAT(c.curriculum, ' - ', c.level, ' ', c.section) as class 
+    FROM restriction_list r 
+    INNER JOIN class_list c ON c.id = r.class_id 
+    WHERE r.academic_id = {$_SESSION['academic']['id']}
+";
 $class_list = $conn->query($class_query);
 
-$subject_query = "SELECT DISTINCT s.id as sid, s.code as subject_code, s.subject FROM restriction_list r INNER JOIN subject_list s ON s.id = r.subject_id WHERE r.academic_id = {$_SESSION['academic']['id']}";
+// Fetch distinct subject for dropdown
+$subject_query = "
+    SELECT DISTINCT s.id as sid, CONCAT(s.code, ' - ', s.subject) as subject 
+    FROM restriction_list r 
+    INNER JOIN subject_list s ON s.id = r.subject_id 
+    WHERE r.academic_id = {$_SESSION['academic']['id']}
+";
 $subject_list = $conn->query($subject_query);
+
 ?>
 
 <div class="col-lg-12">
@@ -71,9 +89,10 @@ $subject_list = $conn->query($subject_query);
                     <select id="subject_id" name="subject_id" class="form-control">
                         <option value="">-- Select Subject --</option>
                         <?php while ($row = $subject_list->fetch_assoc()): ?>
-                            <option value="<?php echo $row['sid']; ?>"><?php echo $row['subject_code'].' - '.$row['subject']; ?></option>
+                            <option value="<?php echo $row['sid']; ?>"><?php echo $row['subject']; ?></option>
                         <?php endwhile; ?>
                     </select>
+
                 </div>
 
                 <button type="submit" class="btn btn-primary">Proceed to Evaluation</button>

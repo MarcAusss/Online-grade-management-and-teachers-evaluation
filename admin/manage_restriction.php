@@ -104,48 +104,88 @@ include '../db_connect.php';
 		    placeholder:"Please select here",
 		    width: "100%"
 		  });
-		$('#manage-restriction').submit(function(e){
-			e.preventDefault();
-			start_load()
-			$('#msg').html('')
-			$.ajax({
-				url:'ajax.php?action=save_restriction',
-				method:'POST',
-				data:$(this).serialize(),
-				success:function(resp){
-					if(resp == 1){
-						alert_toast("Data successfully saved.","success");
-						setTimeout(function(){
-							location.reload()	
-						},1750)
-					}else if(resp == 2){
-						$('#msg').html('<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> Class already exist.</div>')
-						end_load()
-					}
-				}
-			})
-		})
+		
 		$('#add_to_list').click(function(){
-			start_load()
-			var frm = $('#manage-restriction')
-			var cid = frm.find('#class_id').val()
-			var fid = frm.find('#faculty_id').val()
-			var sid = frm.find('#subject_id').val()
+			start_load();
+			var frm = $('#manage-restriction');
+			var cid = frm.find('#class_id').val();
+			var fid = frm.find('#faculty_id').val();
+			var sid = frm.find('#subject_id').val();
 			var f_arr = <?php echo json_encode($f_arr) ?>;
 			var c_arr = <?php echo json_encode($c_arr) ?>;
 			var s_arr = <?php echo json_encode($s_arr) ?>;
-			var tr = $("<tr></tr>")
-			tr.append('<td><b>'+f_arr[fid].name+'</b><input type="hidden" name="rid[]" value=""><input type="hidden" name="faculty_id[]" value="'+fid+'"></td>')
-			tr.append('<td><b>'+c_arr[cid].class+'</b><input type="hidden" name="class_id[]" value="'+cid+'"></td>')
-			tr.append('<td><b>'+s_arr[sid].subj+'</b><input type="hidden" name="subject_id[]" value="'+sid+'"></td>')
-			tr.append('<td class="text-center"><span class="btn btn-sm btn-outline-danger" onclick="$(this).closest(\'tr\').remove()" type="button"><i class="fa fa-trash"></i></span></td>')
-			$('#r-list tbody').append(tr)
-			frm.find('#class_id').val('').trigger('change')
-			frm.find('#faculty_id').val('').trigger('change')
-			frm.find('#subject_id').val('').trigger('change')
-			end_load()
-		})
-	})
 
+			// Make sure that all fields are selected
+			if(!fid || !cid || !sid){
+				alert("Please select Faculty, Class, and Subject");
+				end_load();
+				return;
+			}
+
+			// Create the new row for the table
+			var tr = $("<tr></tr>");
+			tr.append('<td><b>'+f_arr[fid].name+'</b><input type="hidden" name="rid[]" value=""><input type="hidden" name="faculty_id[]" value="'+fid+'"></td>');
+			tr.append('<td><b>'+c_arr[cid].class+'</b><input type="hidden" name="class_id[]" value="'+cid+'"></td>');
+			tr.append('<td><b>'+s_arr[sid].subj+'</b><input type="hidden" name="subject_id[]" value="'+sid+'"></td>');
+			tr.append('<td class="text-center"><span class="btn btn-sm btn-outline-danger" onclick="deleteRow(this)" type="button"><i class="fa fa-trash"></i></span></td>');
+
+			$('#r-list tbody').append(tr);
+
+			// Send the new restriction to the database
+			$.ajax({
+				url:'ajax.php?action=create_restriction',
+				method:'POST',
+				data: {
+					academic_id: frm.find('input[name="academic_id"]').val(),
+					faculty_id: fid,
+					class_id: cid,
+					subject_id: sid
+				},
+				success:function(resp){
+					if(resp == 1){
+						alert_toast("Restriction added successfully.","success");
+					}else{
+						alert_toast("Failed to add restriction.","error");
+					}
+				}
+			});
+
+			// Clear the form fields after adding
+			frm.find('#class_id').val('').trigger('change');
+			frm.find('#faculty_id').val('').trigger('change');
+			frm.find('#subject_id').val('').trigger('change');
+
+			end_load();
+		});
+	});
+
+	// Function to delete a row
+	function deleteRow(button) {
+		var row = $(button).closest('tr');
+		var rid = row.find('input[name="rid[]"]').val();
+		var academic_id = $('input[name="academic_id"]').val();
+
+		// Remove the row from the table
+		row.remove();
+
+		// If rid is set, send request to delete the restriction from the database
+		if(rid) {
+			$.ajax({
+				url: 'ajax.php?action=delete_restriction',
+				method: 'POST',
+				data: {
+					rid: rid,
+					academic_id: academic_id
+				},
+				success:function(resp){
+					if(resp == 1){
+						alert_toast("Restriction deleted successfully.","success");
+					}else{
+						alert_toast("Failed to delete restriction.","error");
+					}
+				}
+			});
+		}
+	}
 </script>
 
