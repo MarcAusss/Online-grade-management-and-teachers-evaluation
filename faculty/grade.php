@@ -152,7 +152,7 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
 
                         <div class="form-group">
                             <label for="grade">Enter Grade</label>
-                            <input type="number" class="form-control" name="grade" step="0.01" min="1" max="5" required>
+                            <input type="number" class="form-control" name="grade" step="0.01" min="60" max="100" required>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Submit Grade</button>

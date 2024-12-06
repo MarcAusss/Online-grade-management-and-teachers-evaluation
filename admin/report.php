@@ -259,6 +259,7 @@ function ordinal_suffix($num){
         success: function (resp) {
             if (resp) {
                 resp = JSON.parse(resp);
+
                 if (Object.keys(resp).length <= 0) {
                     $('.rates').text('');
                     $('#tse').text('');
@@ -268,41 +269,30 @@ function ordinal_suffix($num){
                 } else {
                     $('#print-btn').show();
                     $('#tse').text(resp.tse);
-                    $('.rates').text('-');
+                    $('.rates').text('-'); // Clear previous content
 
-                    // Handle ratings
-                    var data = resp.data;
-                    var totalResponses = 0;
-                    var totalScore = 0;
+                    const data = resp.data;
 
-                    Object.keys(data).map(q => {
-                        let questionTotalScore = 0;
-                        let questionTotalResponses = 0;
-
-                        Object.keys(data[q]).map(r => {
-                            const rate = parseInt(r);
-                            const frequency = data[q][r];
-                            $('.rate_' + r + '_' + q).text(frequency + '%');
-
-                            questionTotalScore += rate * frequency;
-                            questionTotalResponses += frequency;
-
-                            totalScore += rate * frequency;
-                            totalResponses += frequency;
+                    // Populate ratings in the table
+                    Object.keys(data).forEach(questionID => {
+                        Object.keys(data[questionID]).forEach(rate => {
+                            const count = data[questionID][rate] || 0;
+                            $(`.rate_${rate}_${questionID}`).text(count + "%"); // Set the count
                         });
-
-                        const mean = (questionTotalScore / questionTotalResponses).toFixed(2);
-                        console.log(`Question ${q}: Mean = ${mean}`);
                     });
 
-                    // Calculate overall mean
-                    const overallMean = (totalScore / totalResponses).toFixed(2);
-                    const effectivenessLevel = getPerformanceLevel(overallMean);
-                    $('#effectivenessRating').text(`${effectivenessLevel} (Mean: ${overallMean})`);
+                    // Calculate the overall mean
+                    const overallMean = calculateOverallMean(data);
+                    if (overallMean !== "N/A") {
+                        const effectivenessLevel = getPerformanceLevel(overallMean);
+                        $('#effectivenessRating').text(`${effectivenessLevel} (Mean: ${overallMean})`);
+                    } else {
+                        $('#effectivenessRating').text('No responses available.');
+                    }
 
                     // Handle comments
                     let commentsHtml = '<ul>';
-                    if (resp.comments.length > 0) {
+                    if (resp.comments && resp.comments.length > 0) {
                         resp.comments.forEach(comment => {
                             commentsHtml += `<li>${comment}</li>`;
                         });
@@ -321,13 +311,47 @@ function ordinal_suffix($num){
 }
 
 
-// Function to determine Performance Level (PL) based on mean
+
+// Function to determine Performance Level
 function getPerformanceLevel(mean) {
     if (mean >= 4.21) return 'Highly Effective';
     if (mean >= 3.41) return 'Effective';
     if (mean >= 2.61) return 'Moderately Effective';
     if (mean >= 1.81) return 'Minimally Effective';
     return 'Ineffective';
+}
+
+function calculateOverallMean(data) {
+    let totalScore = 0;
+    let totalResponses = 0;
+
+    // Loop through each question in the data
+    Object.keys(data).forEach((question) => {
+        console.log(`Processing Question ${question}:`, data[question]);
+
+        // Loop through each rating (1 to 5)
+        Object.keys(data[question]).forEach((rate) => {
+            const numericRate = parseInt(rate); // Ensure the rate is a number
+            const frequency = parseInt(data[question][rate]) || 0; // Avoid NaN with default 0
+
+            if (!isNaN(numericRate) && frequency > 0) {
+                totalScore += numericRate * frequency;
+                totalResponses += frequency;
+            }
+        });
+    });
+
+    console.log(`Total Score: ${totalScore}, Total Responses: ${totalResponses}`);
+
+    // Prevent division by zero
+    if (totalResponses === 0) {
+        console.warn("Total responses are zero. Unable to calculate mean.");
+        return "N/A"; // Handle as needed
+    }
+
+    const overallMean = (totalScore / totalResponses).toFixed(2);
+    console.log(`Overall Mean: ${overallMean}`);
+    return overallMean;
 }
 
 

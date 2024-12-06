@@ -634,6 +634,66 @@ Class Action {
 		}
 			return 1;
 	}
+	public function delete_restriction(){
+		// Action: delete_restriction
+		if(isset($_POST['action']) && $_POST['action'] == 'delete_restriction'){
+			extract($_POST);
+			$stmt = $conn->prepare("DELETE FROM restriction_list WHERE id = ? AND academic_id = ?");
+			$stmt->bind_param("ii", $rid, $academic_id);
+			if($stmt->execute()){
+				echo 1;
+			} else {
+				echo 0;
+			}
+		}
+
+	}
+
+	public function create_restriction() {
+		// Use $this->db instead of $conn
+		$academic_id = $_POST['academic_id'] ?? null;
+		$faculty_id = $_POST['faculty_id'] ?? null;
+		$class_id = $_POST['class_id'] ?? null;
+		$subject_id = $_POST['subject_id'] ?? null;
+	
+		// Validate input data
+		if (empty($academic_id) || empty($faculty_id) || empty($class_id) || empty($subject_id)) {
+			error_log("Missing required fields in create_restriction: " . json_encode($_POST));
+			return 0; // Failure due to missing data
+		}
+	
+		// Prepare SQL statement
+		$stmt = $this->db->prepare("INSERT INTO restriction_list (academic_id, faculty_id, class_id, subject_id) VALUES (?, ?, ?, ?)");
+		if (!$stmt) {
+			error_log("Failed to prepare statement in create_restriction: " . $this->db->error);
+			return 0; // Failure due to statement preparation error
+		}
+	
+		// Bind parameters
+		$stmt->bind_param("iiii", $academic_id, $faculty_id, $class_id, $subject_id);
+	
+		// Execute and handle result
+		if ($stmt->execute()) {
+			return 1; // Success
+		} else {
+			error_log("Error in create_restriction execution: " . $stmt->error); // Log error
+			return 0; // Failure
+		}
+	}
+	
+
+	public function update_restriction(){
+		if(isset($_POST['action']) && $_POST['action'] == 'update_restriction'){
+			extract($_POST);
+			$stmt = $conn->prepare("UPDATE restriction_list SET faculty_id = ?, class_id = ?, subject_id = ? WHERE id = ? AND academic_id = ?");
+			$stmt->bind_param("iiiii", $faculty_id, $class_id, $subject_id, $rid, $academic_id);
+			if($stmt->execute()){
+				echo 1;
+			} else {
+				echo 0;
+			}
+		}
+	}
 	public function save_evaluation() {
 		include 'db_connect.php'; // Ensure proper DB connection
 	

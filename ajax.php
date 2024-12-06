@@ -149,6 +149,21 @@ if($action == 'save_restriction'){
 	if($save)
 		echo $save;
 }
+if($action == 'delete_restriction'){
+	$save = $crud->delete_restriction();
+	if($save)
+		echo $save;
+}
+if($action == 'create_restriction'){
+	$save = $crud->create_restriction();
+	if($save)
+		echo $save;
+}
+if($action == 'update_restriction'){
+	$save = $crud->update_restriction();
+	if($save)
+		echo $save;
+}
 if($action == 'save_evaluation'){
 	$save = $crud->save_evaluation();
 	if($save)
