@@ -73,7 +73,10 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
                         <?php
                         // Fetch submitted grades for each term
                         $grades = mysqli_query($conn, "
-                        SELECT g.student_id, g.subject_id, CONCAT(s.firstname, ' ', s.lastname) AS student_name, 
+                        SELECT g.id AS grade_id, 
+                               g.student_id, 
+                               g.subject_id, 
+                               CONCAT(s.firstname, ' ', s.lastname) AS student_name, 
                                sub.code, 
                                MAX(CASE WHEN g.term = 'Prelim' THEN g.grade END) AS Prelim,
                                MAX(CASE WHEN g.term = 'Midterm' THEN g.grade END) AS Midterm,
@@ -85,21 +88,30 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
                         JOIN subject_list sub ON g.subject_id = sub.id
                         GROUP BY g.student_id, g.subject_id
                     ");
+                    
 
                         while($row = mysqli_fetch_assoc($grades)): ?>
-                            <tr>
-                                <td><?= $row['student_name'] ?></td>
-                                <td><?= $row['code'] ?></td>
-                                <td><?= $row['Prelim'] ?? 'N/A' ?></td>
-                                <td><?= $row['Midterm'] ?? 'N/A' ?></td>
-                                <td><?= $row['PreFinals'] ?? 'N/A' ?></td>
-                                <td><?= $row['Finals'] ?? 'N/A' ?></td>
-                                <td><?= date('Y-m-d H:i:s', strtotime($row['submitted_on'])) ?></td> <!-- Display the timestamp -->
-                                <td>
-                                    <button class="btn btn-sm btn-warning edit-grade" data-id="<?= $row['student_id'] ?>" data-subject="<?= $row['subject_id'] ?>">Edit</button>
-                                    <button class="btn btn-sm btn-danger delete-grade" data-id="<?= $row['student_id'] ?>" data-subject="<?= $row['subject_id'] ?>">Delete</button>
-                                </td>
-                            </tr>
+                          <tr>
+                            <td><?= $row['student_name'] ?></td>
+                            <td><?= $row['code'] ?></td>
+                            <td><?= $row['Prelim'] ?? 'N/A' ?></td>
+                            <td><?= $row['Midterm'] ?? 'N/A' ?></td>
+                            <td><?= $row['PreFinals'] ?? 'N/A' ?></td>
+                            <td><?= $row['Finals'] ?? 'N/A' ?></td>
+                            <td><?= date('Y-m-d H:i:s', strtotime($row['submitted_on'])) ?></td>
+                            <td>
+                                <!-- Add grade_id to the button's data- attributes -->
+                                <button class="btn btn-sm btn-warning edit-grade" 
+                                        data-id="<?= $row['student_id'] ?>" 
+                                        data-subject="<?= $row['subject_id'] ?>"
+                                        data-grade-id="<?= $row['grade_id'] ?>">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-grade" 
+                                        data-id="<?= $row['student_id'] ?>" 
+                                        data-subject="<?= $row['subject_id'] ?>"
+                                        data-grade-id="<?= $row['grade_id'] ?>">Delete</button>
+                            </td>
+                        </tr>
+
                         <?php endwhile; ?>
                     </tbody>
                 </table>
@@ -207,47 +219,50 @@ $(document).ready(function() {
 
     // Edit Grade
     $('.edit-grade').on('click', function() {
-        var student_id = $(this).data('id');
-        var subject_id = $(this).data('subject');
-        var term = prompt("Enter the term (Prelim, Midterm, Pre-Finals, Finals):");
-        var current_grade = prompt("Enter new grade:");
+    var student_id = $(this).data('id');
+    var subject_id = $(this).data('subject');
+    var grade_id = $(this).data('grade-id'); // Get grade_id
+    var term = prompt("Enter the term (Prelim, Midterm, Pre-Finals, Finals):");
+    var current_grade = prompt("Enter new grade:");
 
-        if (term && current_grade) {
-            $.ajax({
-                type: 'POST',
-                url: 'ajax.php?action=edit_grade',
-                data: { student_id: student_id, subject_id: subject_id, term: term, grade: current_grade },
-                success: function(response) {
-                    alert(response);
-                    location.reload();
-                },
-                error: function() {
-                    alert('Error editing grade.');
-                }
-            });
-        }
-    });
+    if (term && current_grade) {
+        $.ajax({
+            type: 'POST',
+            url: 'ajax.php?action=edit_grade',
+            data: { grade_id: grade_id, student_id: student_id, subject_id: subject_id, term: term, grade: current_grade }, // Pass grade_id
+            success: function(response) {
+                alert(response);
+                location.reload(); // Reload the page
+            },
+            error: function() {
+                alert('Error editing grade.');
+            }
+        });
+    }
+});
+
+
 
     // Delete Grade
-    $('.delete-grade').on('click', function() {
-        var student_id = $(this).data('id');
-        var subject_id = $(this).data('subject');
-        if (confirm("Are you sure you want to delete this grade?")) {
-            $.ajax({
-                type: 'POST',
-                url: 'ajax.php?action=delete_grade',
-                data: { student_id: student_id, subject_id: subject_id },
-                success: function(response) {
-                    alert(response);
-                    location.reload();
-                },
-                error: function() {
-                    alert('Error deleting grade.');
-                }
-            });
-        }
-    });
-});
+   $('.delete-grade').on('click', function() {
+    var student_id = $(this).data('id');
+    var subject_id = $(this).data('subject');
+    var grade_id = $(this).data('grade-id'); // Get grade_id
+    if (confirm("Are you sure you want to delete this grade?")) {
+        $.ajax({
+            type: 'POST',
+            url: 'ajax.php?action=delete_grade',
+            data: { grade_id: grade_id, student_id: student_id, subject_id: subject_id }, // Pass grade_id
+            success: function(response) {
+                alert(response);
+                location.reload(); // Reload the page
+            },
+            error: function() {
+                alert('Error deleting grade.');
+            }
+        })};
+   })});
+
 </script>
 
 <!-- Include Bootstrap JS and dependencies -->
