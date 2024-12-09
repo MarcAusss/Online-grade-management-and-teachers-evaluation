@@ -656,6 +656,62 @@ Class Action {
 	}
 	
 	
+	public function search_restrictions() {
+		if (isset($_POST['action']) && $_POST['action'] === 'search_restrictions') {
+			$search = $this->db->real_escape_string($_POST['search']);
+	
+			// Adjust query for empty search (return all rows)
+			$query = "
+				SELECT * FROM restriction_list 
+				WHERE 
+					(faculty_id IN (
+						SELECT id FROM faculty_list 
+						WHERE firstname LIKE '%$search%' OR lastname LIKE '%$search%'
+					) 
+					OR class_id IN (
+						SELECT id FROM class_list 
+						WHERE section LIKE '%$search%'
+					) 
+					OR subject_id IN (
+						SELECT id FROM subject_list 
+						WHERE subject LIKE '%$search%'
+					)
+				)";
+	
+			if (empty($search)) {
+				$query = "SELECT * FROM restriction_list";
+			}
+	
+			$result = $this->db->query($query);
+			$output = '';
+			$count = 1;
+	
+			while ($row = $result->fetch_assoc()) {
+				$faculty = $this->db->query("SELECT CONCAT(firstname, ' ', lastname) as name FROM faculty_list WHERE id = {$row['faculty_id']}")->fetch_assoc();
+				$class = $this->db->query("SELECT CONCAT(curriculum, ' ', level, ' - ', section) as class FROM class_list WHERE id = {$row['class_id']}")->fetch_assoc();
+				$subject = $this->db->query("SELECT CONCAT(code, ' - ', subject) as subj FROM subject_list WHERE id = {$row['subject_id']}")->fetch_assoc();
+	
+				$output .= "
+					<tr>
+						<td>{$count}</td>
+						<td>{$faculty['name']}</td>
+						<td>{$class['class']}</td>
+						<td>{$subject['subj']}</td>
+						<td class='text-center'>
+							<button class='btn btn-sm btn-danger' onclick='deleteRestriction({$row['id']})'>Delete</button>
+						</td>
+					</tr>";
+				$count++;
+			}
+	
+			if ($output === '') {
+				$output = '<tr><td colspan="5" class="text-center">No results found.</td></tr>';
+			}
+	
+			echo $output;
+		}
+	}
+	
 	
 	public function create_restriction() {
 		// Use $this->db instead of $conn
