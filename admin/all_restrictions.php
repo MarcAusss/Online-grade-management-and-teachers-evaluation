@@ -39,7 +39,7 @@ include __DIR__ . '/../db_connect.php';
                                 $class = $conn->query("SELECT concat(curriculum, ' ', level, ' - ', section) as class FROM class_list WHERE id = {$row['class_id']}")->fetch_assoc();
                                 $subject = $conn->query("SELECT concat(code, ' - ', subject) as subj FROM subject_list WHERE id = {$row['subject_id']}")->fetch_assoc();
                             ?>
-                            <tr>
+                          <tr>
                                 <td><?php echo $count++; ?></td>
                                 <td><?php echo $faculty['name'] ?? ''; ?></td>
                                 <td><?php echo $class['class'] ?? ''; ?></td>
@@ -78,21 +78,25 @@ include __DIR__ . '/../db_connect.php';
 
 
 <script>
-    function deleteRestriction(id) {
-        if (confirm("Are you sure you want to delete this restriction?")) {
-            $.ajax({
-                url: 'ajax.php?action=delete_restriction',
-                method: 'POST',
-                data: { id: id },
-                success: function(resp) {
-                    if (resp == 1) {
-                        alert("Restriction deleted successfully.");
-                        location.reload();
-                    } else {
-                        alert("Failed to delete restriction.");
-                    }
+    function deleteRestriction(rid) {
+    if (confirm("Are you sure you want to delete this restriction?")) {
+        $.ajax({
+            url: 'ajax.php?action=delete_restriction',
+            method: 'POST',
+            data: { rid: rid }, // Send 'rid' to align with the PHP method
+            success: function(resp) {
+                if (resp == 1) {
+                    alert("Restriction deleted successfully.");
+                    location.reload(); // Reload the page to refresh the table
+                } else {
+                    alert("Failed to delete restriction.");
                 }
-            });
-        }
+            },
+            error: function() {
+                alert("An error occurred while processing the request.");
+            }
+        });
     }
+}
+
 </script>

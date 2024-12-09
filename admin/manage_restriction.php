@@ -65,7 +65,7 @@ include '../db_connect.php';
 							<th>Faculty</th>
 							<th>Class</th>
 							<th>Subject</th>
-							<th>Action</th>
+							<!-- <th>Action</th> -->
 						</tr>
 					</thead>
 					<tbody>
@@ -87,9 +87,9 @@ include '../db_connect.php';
 								<b><?php echo isset($s_arr[$row['subject_id']]) ? $s_arr[$row['subject_id']]['subj'] : '' ?></b>
 								<input type="hidden" name="subject_id[]" value="<?php echo $row['class_id'] ?>">
 							</td>
-							<td class="text-center">
+							<!-- <td class="text-center">
 								<button class="btn btn-sm btn-outline-danger" onclick="$(this).closest('tr').remove()" type="button"><i class="fa fa-trash"></i></button>
-							</td>
+							</td> -->
 						</tr>
 					<?php endwhile; ?>
 					</tbody>
@@ -160,32 +160,35 @@ include '../db_connect.php';
 	});
 
 	// Function to delete a row
-	function deleteRow(button) {
-		var row = $(button).closest('tr');
-		var rid = row.find('input[name="rid[]"]').val();
-		var academic_id = $('input[name="academic_id"]').val();
+// Function to delete a row and immediately delete from the database
+function deleteRow(button) {
+    var row = $(button).closest('tr'); // Get the closest table row
+    var rid = row.find('input[name="rid[]"]').val(); // Get the 'rid' value
 
-		// Remove the row from the table
-		row.remove();
+    if (!rid) {
+        alert('Invalid restriction ID.');
+        return;
+    }
 
-		// If rid is set, send request to delete the restriction from the database
-		if(rid) {
-			$.ajax({
-				url: 'ajax.php?action=delete_restriction',
-				method: 'POST',
-				data: {
-					rid: rid,
-					academic_id: academic_id
-				},
-				success:function(resp){
-					if(resp == 1){
-						alert_toast("Restriction deleted successfully.","success");
-					}else{
-						alert_toast("Failed to delete restriction.","error");
-					}
-				}
-			});
-		}
-	}
+    // AJAX request to delete the record from the database
+    $.ajax({
+        url: 'ajax.php?action=delete_restriction',
+        method: 'POST',
+        data: { rid: rid },
+        success: function(response) {
+            if (response == 1) {
+                alert_toast("Restriction deleted successfully.", "success");
+                row.remove(); // Remove the row from the table
+            } else {
+                alert_toast("Failed to delete restriction.", "error");
+            }
+        },
+        error: function() {
+            alert('An error occurred. Please try again.');
+        }
+    });
+}
+
+
 </script>
 
