@@ -940,31 +940,51 @@ Class Action {
 	}
 	
 	public function edit_grade() {
-        $grade_id = $_POST['grade_id'];
-        $grade = $_POST['grade'];
-
-        $query = "UPDATE grades SET grade='$grade' WHERE id='$grade_id'";
-        $result = $this->db->query($query);
-
-        if ($result) {
-            return "Grade updated successfully.";
-        } else {
-            return "Error Updating Grade: " . $this->db->error;
-        }
-    }
+		if (isset($_POST['grade_id'], $_POST['grade'])) {
+			$grade_id = $_POST['grade_id'];
+			$grade = $_POST['grade'];
+	
+			// Update the grade based on the grade_id
+			$query = "UPDATE grades SET grade=? WHERE id=?";
+			$stmt = $this->db->prepare($query);
+			$stmt->bind_param("di", $grade, $grade_id); // Bind grade and grade_id
+	
+			if ($stmt->execute()) {
+				echo "Grade updated successfully.";
+			} else {
+				echo "Error updating grade: " . $stmt->error;
+			}
+	
+			$stmt->close();
+		} else {
+			echo "Invalid input.";
+		}
+	}
+	
+	
 
     public function delete_grade() {
-        $grade_id = $_POST['grade_id'];
-
-        $query = "DELETE FROM grades WHERE id='$grade_id'";
-        $result = $this->db->query($query);
-
-        if ($result) {
-            return "Grade deleted successfully.";
-        } else {
-            return "Error Deleting Grade: " . $this->db->error;
-        }
-    }
+		if (isset($_POST['grade_id'])) {
+			$grade_id = $_POST['grade_id'];
+	
+			// Delete the grade record based on the grade_id
+			$query = "DELETE FROM grades WHERE id=?";
+			$stmt = $this->db->prepare($query);
+			$stmt->bind_param("i", $grade_id); // Bind grade_id
+	
+			if ($stmt->execute()) {
+				echo "Grade deleted successfully.";
+			} else {
+				echo "Error deleting grade: " . $stmt->error;
+			}
+	
+			$stmt->close();
+		} else {
+			echo "Invalid input.";
+		}
+	}
+	
+	
 
 	// public function fetch_class() {
 	// 	global $conn; // Make sure to access the connection
