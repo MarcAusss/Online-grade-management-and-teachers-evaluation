@@ -634,21 +634,29 @@ Class Action {
 		}
 			return 1;
 	}
-	public function delete_restriction(){
-		// Action: delete_restriction
-		if(isset($_POST['action']) && $_POST['action'] == 'delete_restriction'){
-			extract($_POST);
-			$stmt = $conn->prepare("DELETE FROM restriction_list WHERE id = ? AND academic_id = ?");
-			$stmt->bind_param("ii", $rid, $academic_id);
-			if($stmt->execute()){
-				echo 1;
+	public function delete_restriction() {
+		if (isset($_POST['rid'])) {
+			$rid = $_POST['rid'];
+	
+			// Prepare the query to delete the record
+			$stmt = $this->db->prepare("DELETE FROM restriction_list WHERE id = ?");
+			$stmt->bind_param("i", $rid);
+	
+			// Execute the query and handle response
+			if ($stmt->execute()) {
+				echo 1; // Success
 			} else {
-				echo 0;
+				echo 0; // Failure
 			}
+	
+			$stmt->close();
+		} else {
+			echo 0; // Invalid input
 		}
-
 	}
-
+	
+	
+	
 	public function create_restriction() {
 		// Use $this->db instead of $conn
 		$academic_id = $_POST['academic_id'] ?? null;
