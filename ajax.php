@@ -154,6 +154,11 @@ if($action == 'delete_restriction'){
 	if($save)
 		echo $save;
 }
+if($action == 'search_restrictions'){
+	$save = $crud->search_restrictions();
+	if($save)
+		echo $save;
+}
 if($action == 'create_restriction'){
 	$save = $crud->create_restriction();
 	if($save)

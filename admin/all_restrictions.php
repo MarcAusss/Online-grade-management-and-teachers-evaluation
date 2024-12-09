@@ -8,9 +8,13 @@ include __DIR__ . '/../db_connect.php';
 
         <section class="content">
             <div class="box">
+            <a href="http://localhost/php/eval/index.php?page=manage_questionnaire&id=4" class="btn btn-sm btn-primary">Back to Questionnaire</a>
+
                 <div class="box-header with-border d-flex justify-content-between align-items-center">
                     <h3 class="box-title">Restrictions List</h3>
-                    <a href="http://localhost/php/eval/index.php?page=manage_questionnaire&id=4" class="btn btn-sm btn-primary">Back to Questionnaire</a>
+                    <div class="d-flex">
+                         <input type="text" id="searchInput" class="form-control" placeholder="Search...">
+                    </div>
                 </div>
                 <div class="box-body">
                     <table class="table table-bordered table-hover">
@@ -23,15 +27,20 @@ include __DIR__ . '/../db_connect.php';
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="restrictionsTableBody">
                             <?php
                             // Pagination logic
                             $limit = 10; // Entries per page
-                            $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+                            $page = isset($_GET['pagination']) && is_numeric($_GET['pagination']) ? (int) $_GET['pagination'] : 1;
                             $start = ($page - 1) * $limit;
                             
                             $query = "SELECT * FROM restriction_list ORDER BY id DESC LIMIT $start, $limit";
                             $result = $conn->query($query);
+                            
+                            // Total entries calculation
+                            $resultTotal = $conn->query("SELECT COUNT(*) AS total FROM restriction_list");
+                            $total = $resultTotal->fetch_assoc()['total'];
+                            $pages = ceil($total / $limit);
 
                             $count = $start + 1; // For row numbering
                             while ($row = $result->fetch_assoc()) {
@@ -62,7 +71,7 @@ include __DIR__ . '/../db_connect.php';
                         <ul class="pagination">
                             <?php for ($i = 1; $i <= $pages; $i++) : ?>
                                 <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
-                                    <a class="page-link" href="all_restrictions.php?page=<?php echo $i; ?>">
+                                    <a class="page-link" href="index.php?page=all_restrictions&pagination=<?php echo $i; ?>">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>
@@ -98,5 +107,24 @@ include __DIR__ . '/../db_connect.php';
         });
     }
 }
+
+$(document).ready(function () {
+    $('#searchInput').on('keyup', function () {
+        let search = $(this).val(); // Get search term
+        $.ajax({
+            url: 'ajax.php?action=search_restrictions', // URL for your search function
+            method: 'POST',
+            data: { search: search }, // Send search term to backend
+            success: function (data) {
+                // Replace table body with the search results
+                $('#restrictionsTableBody').html(data);
+            },
+            error: function () {
+                alert('An error occurred while searching.');
+            }
+        });
+    });
+});
+
 
 </script>
