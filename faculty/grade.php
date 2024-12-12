@@ -71,27 +71,37 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
                     </thead>
                     <tbody>
                         <?php
-                        // Fetch submitted grades for each term
-                        $grades = mysqli_query($conn, "
-                        SELECT g.id AS grade_id, 
-                               g.student_id, 
-                               g.subject_id, 
-                               CONCAT(s.firstname, ' ', s.lastname) AS student_name, 
-                               sub.code, 
-                               MAX(CASE WHEN g.term = 'Prelim' THEN g.grade END) AS Prelim,
-                               MAX(CASE WHEN g.term = 'Midterm' THEN g.grade END) AS Midterm,
-                               MAX(CASE WHEN g.term = 'Pre-Finals' THEN g.grade END) AS PreFinals,
-                               MAX(CASE WHEN g.term = 'Finals' THEN g.grade END) AS Finals,
-                               g.timestamp AS submitted_on
-                        FROM grades g
-                        JOIN student_list s ON g.student_id = s.id
-                        JOIN subject_list sub ON g.subject_id = sub.id
-                        GROUP BY g.student_id, g.subject_id
-                    ");
-                    
-
-                        while($row = mysqli_fetch_assoc($grades)): ?>
-                          <tr>
+                        $faculty_id = $_SESSION['login_id']; // Fetch the current faculty's ID
+                        
+                        // Prepared statement to fetch grades for the current faculty
+                        $stmt = $conn->prepare("
+                            SELECT 
+                                g.id AS grade_id, 
+                                g.student_id, 
+                                g.subject_id, 
+                                CONCAT(s.firstname, ' ', s.lastname) AS student_name, 
+                                sub.code, 
+                                MAX(CASE WHEN g.term = 'Prelim' THEN g.grade END) AS Prelim,
+                                MAX(CASE WHEN g.term = 'Midterm' THEN g.grade END) AS Midterm,
+                                MAX(CASE WHEN g.term = 'Pre-Finals' THEN g.grade END) AS PreFinals,
+                                MAX(CASE WHEN g.term = 'Finals' THEN g.grade END) AS Finals,
+                                g.timestamp AS submitted_on
+                            FROM grades g
+                            JOIN student_list s ON g.student_id = s.id
+                            JOIN subject_list sub ON g.subject_id = sub.id
+                            WHERE g.faculty_id = ?
+                            GROUP BY g.student_id, g.subject_id
+                        ");
+                        $stmt->bind_param("i", $faculty_id); // Bind faculty_id to the query
+                        $stmt->execute();
+                        $result = $stmt->get_result(); // Get the query results
+                        ?>
+                        
+                        
+                                            
+                        
+                                               <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                        <tr>
                             <td><?= $row['student_name'] ?></td>
                             <td><?= $row['code'] ?></td>
                             <td><?= $row['Prelim'] ?? 'N/A' ?></td>
@@ -100,19 +110,18 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
                             <td><?= $row['Finals'] ?? 'N/A' ?></td>
                             <td><?= date('Y-m-d H:i:s', strtotime($row['submitted_on'])) ?></td>
                             <td>
-                                <!-- Add grade_id to the button's data- attributes -->
                                 <button class="btn btn-sm btn-warning edit-grade" 
                                         data-id="<?= $row['student_id'] ?>" 
-                                        data-subject="<?= $row['subject_id'] ?>"
+                                        data-subject="<?= $row['subject_id'] ?>" 
                                         data-grade-id="<?= $row['grade_id'] ?>">Edit</button>
                                 <button class="btn btn-sm btn-danger delete-grade" 
                                         data-id="<?= $row['student_id'] ?>" 
-                                        data-subject="<?= $row['subject_id'] ?>"
+                                        data-subject="<?= $row['subject_id'] ?>" 
                                         data-grade-id="<?= $row['grade_id'] ?>">Delete</button>
                             </td>
                         </tr>
-
                         <?php endwhile; ?>
+
                     </tbody>
                 </table>
             </div>
