@@ -140,26 +140,27 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
                 </div>
                 <div class="modal-body">
                     <form action="submit_grade_action.php" method="POST" id="submit-grade-form">
-                    <div class="form-group">
+                        <div class="form-group">
                             <label for="student">Select Student</label>
-                            <select class="form-control" id="student-select" name="student_id" required>
+                            <select class="form-control" name="student_id" required>
                                 <option value="" disabled selected>Select Student</option>
                                 <?php while($row = mysqli_fetch_assoc($students)): ?>
                                     <option value="<?= $row['id'] ?>"><?= $row['firstname'] . ' ' . $row['lastname'] ?></option>
                                 <?php endwhile; ?>
                             </select>
-                    </div>
+                        </div>
 
-                    <div class="form-group">
+                        <div class="form-group">
                             <label for="subject">Select Subject</label>
-                            <select class="form-control" id="subject-select" name="subject_id" required>
+                            <select class="form-control" name="subject_id" required>
                                 <option value="" disabled selected>Select Subject</option>
                                 <?php while($row = mysqli_fetch_assoc($subjects_for_modal)): ?>
                                     <option value="<?= $row['id'] ?>"><?= $row['code'] ?></option>
                                 <?php endwhile; ?>
                             </select>
-                    </div>
-                     <div class="form-group">
+                        </div>
+
+                        <div class="form-group">
                             <label for="term">Select Term</label>
                             <select class="form-control" name="term" required>
                                 <option value="" disabled selected>Select Term</option>
@@ -272,23 +273,8 @@ $(document).ready(function() {
    })});
 
 </script>
-<script>
-    $(document).ready(function() {
-        $('#student-select').select2({
-            placeholder: "Select Student",
-            allowClear: true
-        });
 
-        $('#subject-select').select2({
-            placeholder: "Select Subject",
-            allowClear: true
-        });
-    });
-</script>
 <!-- Include Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
