@@ -128,62 +128,78 @@ $academic_years = ['2022-2023', '2023-2024']; // Example years
         </div>
     </div>
 
-    <!-- Grade Submission Modal -->
-    <div class="modal fade" id="submitGradeModal" tabindex="-1" role="dialog" aria-labelledby="submitGradeModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="submitGradeModalLabel">Submit Grades</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="submit_grade_action.php" method="POST" id="submit-grade-form">
-                        <div class="form-group">
-                            <label for="student">Select Student</label>
-                            <select class="form-control" name="student_id" required>
-                                <option value="" disabled selected>Select Student</option>
-                                <?php while($row = mysqli_fetch_assoc($students)): ?>
-                                    <option value="<?= $row['id'] ?>"><?= $row['firstname'] . ' ' . $row['lastname'] ?></option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
+   <!-- Grade Submission Modal -->
+<div class="modal fade" id="submitGradeModal" tabindex="-1" role="dialog" aria-labelledby="submitGradeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitGradeModalLabel">Submit Grades</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="submit_grade_action.php" method="POST" id="submit-grade-form">
+                    <div class="form-group">
+                        <label for="student">Select Student</label>
+                        <select name="student_id" id="student" class="form-control select2" required>
+                            <option value="" disabled selected>Select Student</option>
+                            <?php while($row = mysqli_fetch_assoc($students)): ?>
+                                <option value="<?= $row['id'] ?>"><?= $row['firstname'] . ' ' . $row['lastname'] ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="subject">Select Subject</label>
-                            <select class="form-control" name="subject_id" required>
-                                <option value="" disabled selected>Select Subject</option>
-                                <?php while($row = mysqli_fetch_assoc($subjects_for_modal)): ?>
-                                    <option value="<?= $row['id'] ?>"><?= $row['code'] ?></option>
-                                <?php endwhile; ?>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="subject">Select Subject</label>
+                        <select name="subject_id" id="subject" class="form-control select2" required>
+                            <option value="" disabled selected>Select Subject</option>
+                            <?php while($row = mysqli_fetch_assoc($subjects_for_modal)): ?>
+                                <option value="<?= $row['id'] ?>"><?= $row['code'] ?></option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="term">Select Term</label>
-                            <select class="form-control" name="term" required>
-                                <option value="" disabled selected>Select Term</option>
-                                <option value="Prelim">Prelim</option>
-                                <option value="Midterm">Midterm</option>
-                                <option value="Pre-Finals">Pre-Finals</option>
-                                <option value="Finals">Finals</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="term">Select Term</label>
+                        <select class="form-control" name="term" required>
+                            <option value="" disabled selected>Select Term</option>
+                            <option value="Prelim">Prelim</option>
+                            <option value="Midterm">Midterm</option>
+                            <option value="Pre-Finals">Pre-Finals</option>
+                            <option value="Finals">Finals</option>
+                        </select>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="grade">Enter Grade</label>
-                            <input type="number" class="form-control" name="grade" step="0.01" min="60" max="100" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="grade">Enter Grade</label>
+                        <input type="number" class="form-control" name="grade" step="0.01" min="60" max="100" required>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary">Submit Grade</button>
-                    </form>
-                </div>
+                    <button type="submit" class="btn btn-primary">Submit Grade</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+</div>
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for the student and subject dropdowns
+    $('#student').select2({
+        placeholder: "Search and select a student",
+        allowClear: true
+    });
+
+    $('#subject').select2({
+        placeholder: "Search and select a subject",
+        allowClear: true
+    });
+
+    // Optional: You can add any additional configuration for the select2 if needed.
+});
+</script>
 <script>
 $(document).ready(function() {
     // Filter and Search Logic

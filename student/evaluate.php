@@ -62,42 +62,41 @@ $subject_list = $conn->query($subject_query);
 
 <div class="col-lg-12">
     <div class="row">
-        <div class="col-md-3">
-            <form id="filter-evaluation">
-                <div class="form-group">
-                    <label for="faculty_id">Select Faculty</label>
-                    <select id="faculty_id" name="faculty_id" class="form-control">
-                        <option value="">-- Select Faculty --</option>
-                        <?php while ($row = $faculty_list->fetch_assoc()): ?>
-                            <option value="<?php echo $row['fid']; ?>"><?php echo $row['faculty']; ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
+    <div class="col-md-3">
+    <form id="filter-evaluation">
+        <div class="form-group">
+            <label for="faculty_id">Select Faculty</label>
+            <select id="faculty_id" name="faculty_id" class="form-control select2">
+                <option value="">-- Select Faculty --</option>
+                <?php while ($row = $faculty_list->fetch_assoc()): ?>
+                    <option value="<?php echo $row['fid']; ?>"><?php echo $row['faculty']; ?></option>
+                <?php endwhile; ?>
+            </select>
+        </div>
 
-                <div class="form-group">
-                    <label for="class_id">Select Class</label>
-                    <select id="class_id" name="class_id" class="form-control">
-                        <option value="">-- Select Class --</option>
-                        <?php while ($row = $class_list->fetch_assoc()): ?>
-                            <option value="<?php echo $row['cid']; ?>"><?php echo $row['class']; ?></option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
+        <div class="form-group">
+            <label for="class_id">Select Class</label>
+            <select id="class_id" name="class_id" class="form-control select2">
+                <option value="">-- Select Class --</option>
+                <?php while ($row = $class_list->fetch_assoc()): ?>
+                    <option value="<?php echo $row['cid']; ?>"><?php echo $row['class']; ?></option>
+                <?php endwhile; ?>
+            </select>
+        </div>
 
-                <div class="form-group">
-                    <label for="subject_id">Select Subject</label>
-                    <select id="subject_id" name="subject_id" class="form-control">
-                        <option value="">-- Select Subject --</option>
-                        <?php while ($row = $subject_list->fetch_assoc()): ?>
-                            <option value="<?php echo $row['sid']; ?>"><?php echo $row['subject']; ?></option>
-                        <?php endwhile; ?>
-                    </select>
+        <div class="form-group">
+            <label for="subject_id">Select Subject</label>
+            <select id="subject_id" name="subject_id" class="form-control select2">
+                <option value="">-- Select Subject --</option>
+                <?php while ($row = $subject_list->fetch_assoc()): ?>
+                    <option value="<?php echo $row['sid']; ?>"><?php echo $row['subject']; ?></option>
+                <?php endwhile; ?>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Proceed to Evaluation</button>
+    </form>
+</div>
 
-                </div>
-
-                <button type="submit" class="btn btn-primary">Proceed to Evaluation</button>
-            </form>
-        </div>  
 
         <div class="col-md-9">
             <div id="evaluation-form" style="display:none;">
