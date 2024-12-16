@@ -25,13 +25,13 @@ if (isset($_POST['sendEmail'])) {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'arvingm1522@gmail.com'; // Replace with your actual Gmail
-        $mail->Password = 'guxuezdzfvmqtoks'; // Replace with your app-specific password
+        $mail->Username = 'kennamaearcueno@gmail.com'; // Replace with your actual Gmail
+        $mail->Password = 'purbcnyqyultdxav'; // Replace with your app-specific password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
         // Recipients
-        $mail->setFrom('arvingm1522@gmail.com', 'Registrar CASAUL');  // Adjust sender's email and name
+        $mail->setFrom('kennamaearcueno@gmail.com', 'Registrar CASAUL');  // Adjust sender's email and name
         $mail->addAddress($facultyEmail);  // Use the selected faculty's email
 
         // Content
